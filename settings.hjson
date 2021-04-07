@@ -5,15 +5,20 @@
     },
 
     microscope:{
-        "addressable_pixels":[65536, 56576] # in 0.1us
-        "max_dwt":50000 # horisontal screen width in nm
+        "addressable_pixels":[65536, 56576] 
+        # in 0.1us
+        "max_dwt":50000 
+        # horisontal screen width in nm
         "screen_width":6400 
     },
 
     "ordering":{
-        "scanning_order" : "serpentine" # scanning order between slices (serpentine, or serial)
-        "piece_order" : "parallel" # order between pieces (parallel or sequential)
-        "cutoff_time" : 100  # for faster exporting, get rid of all of the dwells which are below this cutoff time (in 0.1us)
+        # scanning order between slices (serpentine, or serial)
+        "scanning_order" : "serpentine" 
+        # order between pieces (parallel or sequential)
+        "piece_order" : "parallel"
+        # for faster exporting, get rid of all of the dwells which are below this cutoff time (in 0.1us)
+        "cutoff_time" : 100
     },
 
     "geometrical":{

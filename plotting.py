@@ -5,7 +5,7 @@ import mayavi.mlab as mlab
 import numpy.linalg as la
 
 
-def plot_mesh(mesh, wireframe=False):
+def plot_mesh_maya(mesh, wireframe=False):
     mlab.figure()
     if wireframe:
         s = trimesh3d(mesh.points0, mesh.faces, color=(1, 1, 1),
@@ -22,16 +22,33 @@ def plot_mesh_mpl(msh, ax=None):
         ax = mplot3d.Axes3D(fig, auto_add_to_figure=False)
         fig.add_axes(ax)
 
-    ax.add_collection3d(mplot3d.art3d.Poly3DCollection(msh.vectors))
+    ax.add_collection3d(mplot3d.art3d.Poly3DCollection(msh.triangles))
+    bounds = msh.bounds
 
-    ax.set_xlim(msh.vectors[:, :, 0].min(), msh.vectors[:, :, 0].max())
-    ax.set_ylim(msh.vectors[:, :, 1].min(), msh.vectors[:, :, 1].max())
-    ax.set_zlim(msh.vectors[:, :, 2].min(), msh.vectors[:, :, 2].max())
+    ax.set_xlim(bounds[0, 0], bounds[1, 0])
+    ax.set_ylim(bounds[0, 1], bounds[1, 1])
+    ax.set_zlim(bounds[0, 2], bounds[1, 2])
     set_axes_equal(ax)
     return ax
 
 
-def points3d(verts, point_size=3, **kwargs):
+def points3d(verts, ax=None):
+    if ax is None:
+        fig = plt.figure()
+        ax = mplot3d.Axes3D(fig, auto_add_to_figure=False)
+        fig.add_axes(ax)
+    ax.scatter(verts[:, 0], verts[:, 1], verts[:, 2])
+    return ax
+
+
+def points2d(verts, ax=None):
+    if ax is None:
+        fig, ax = plt.subplots()
+    ax.scatter(verts[:, 0], verts[:, 1])
+    return ax
+
+
+def points3d_maya(verts, point_size=3, **kwargs):
     if 'mode' not in kwargs:
         kwargs['mode'] = 'point'
     p = mlab.points3d(verts[:, 0], verts[:, 1], verts[:, 2], **kwargs)
