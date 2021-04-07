@@ -1,0 +1,27 @@
+{
+    "stl":{
+        "pitch":3 # in nm
+        "fill" : false
+    },
+
+    microscope:{
+        "addressable_pixels":[65536, 56576] # in 0.1us
+        "max_dwt":50000 # horisontal screen width in nm
+        "screen_width":6400 
+    },
+
+    "ordering":{
+        "scanning_order" : "serpentine" # scanning order between slices (serpentine, or serial)
+        "piece_order" : "parallel" # order between pieces (parallel or sequential)
+        "cutoff_time" : 100  # for faster exporting, get rid of all of the dwells which are below this cutoff time (in 0.1us)
+    },
+
+    "geometrical":{
+        "n_levels" : 20
+    },
+
+    "resistance":{
+        "scale":1000
+        "single_pixel_width":50 # in nm
+    }
+}
