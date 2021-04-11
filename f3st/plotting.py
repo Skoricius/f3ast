@@ -32,12 +32,12 @@ def plot_mesh_mpl(msh, ax=None):
     return ax
 
 
-def points3d(verts, ax=None):
+def points3d(verts, *args, ax=None, **kwargs):
     if ax is None:
         fig = plt.figure()
         ax = mplot3d.Axes3D(fig, auto_add_to_figure=False)
         fig.add_axes(ax)
-    ax.scatter(verts[:, 0], verts[:, 1], verts[:, 2])
+    ax.scatter(verts[:, 0], verts[:, 1], verts[:, 2], *args, **kwargs)
     return ax
 
 

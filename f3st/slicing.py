@@ -1,6 +1,10 @@
-from numba import njit
+from numba import njit, config
 import numpy.linalg as la
 import numpy as np
+import numpy as np
+
+# set the threading layer before any parallel target compilation
+config.THREADING_LAYER = 'threadsafe'
 
 
 @njit(parallel=True, fastmath=True)
