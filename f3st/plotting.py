@@ -1,19 +1,7 @@
 import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
 import numpy as np
-import mayavi.mlab as mlab
 import numpy.linalg as la
-
-
-def plot_mesh_maya(mesh, wireframe=False):
-    mlab.figure()
-    if wireframe:
-        s = trimesh3d(mesh.points0, mesh.faces, color=(1, 1, 1),
-                      opacity=0.5, representation='wireframe')
-    else:
-        s = trimesh3d(mesh.points0, mesh.faces, color=(1, 1, 1))
-    mlab.axes()
-    return s
 
 
 def plot_mesh_mpl(msh, ax=None):
@@ -37,43 +25,21 @@ def points3d(verts, *args, ax=None, **kwargs):
         fig = plt.figure()
         ax = mplot3d.Axes3D(fig, auto_add_to_figure=False)
         fig.add_axes(ax)
-    ax.scatter(verts[:, 0], verts[:, 1], verts[:, 2], *args, **kwargs)
-    return ax
+    sc = ax.scatter(verts[:, 0], verts[:, 1], verts[:, 2], *args, **kwargs)
+    return ax, sc
+
+
+def plot_dwells(dwells):
+    ax, sc = points3d(dwells[:, 1:], c=dwells[:, 0], cmap='magma')
+    plt.colorbar(sc, ax=ax, shrink=0.6, label='t [ms]')
+    return ax, sc
 
 
 def points2d(verts, ax=None):
     if ax is None:
         fig, ax = plt.subplots()
-    ax.scatter(verts[:, 0], verts[:, 1])
-    return ax
-
-
-def points3d_maya(verts, point_size=3, **kwargs):
-    if 'mode' not in kwargs:
-        kwargs['mode'] = 'point'
-    p = mlab.points3d(verts[:, 0], verts[:, 1], verts[:, 2], **kwargs)
-    p.actor.property.point_size = point_size
-
-
-def trimesh3d(verts, faces, **kwargs):
-    return mlab.triangular_mesh(verts[:, 0], verts[:, 1], verts[:, 2], faces,
-                                **kwargs)
-
-
-def show_plane(orig, n, scale=1.0, **kwargs):
-    """
-    Show the plane with the given origin and normal. scale give its size
-    """
-    b1 = orthogonal_vector(np.array(n).astype(float))
-    b1 /= la.norm(b1)
-    b2 = np.cross(b1, n)
-    b2 /= la.norm(b2)
-    verts = [orig + scale * (-b1 - b2),
-             orig + scale * (b1 - b2),
-             orig + scale * (b1 + b2),
-             orig + scale * (-b1 + b2)]
-    faces = [(0, 1, 2), (0, 2, 3)]
-    return trimesh3d(np.array(verts), faces, **kwargs)
+    sc = ax.scatter(verts[:, 0], verts[:, 1])
+    return ax, sc
 
 
 def orthogonal_vector(v):

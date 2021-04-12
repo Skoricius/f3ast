@@ -9,6 +9,24 @@ from .plotting import points2d
 CONVERSION_FACTOR = 10000
 
 
+def intertwine_dwells(dwells_list):
+    """Takes the list of matrices of dwells and intertwines them."""
+    n_list = len(dwells_list)
+    size_list = [dwls.shape[0] for dwls in dwells_list]
+    max_rows = np.max(size_list)
+    total_length = np.sum(size_list)
+    dwells = np.zeros((total_length, 3))
+
+    cnt = 0
+    for i in range(max_rows):
+        for j in range(n_list):
+            if i >= dwells_list[j].shape[0]:
+                continue
+            dwells[cnt, :] = dwells_list[j][i, :]
+            cnt += 1
+    return dwells
+
+
 class Stream:
     def __init__(self, dwells, addressable_pixels=[65536, 56576], max_dwt=5):
         self.dwells = dwells
@@ -37,17 +55,23 @@ class Stream:
             return False
         return True
 
-    def recentre(self):
+    def recentre(self, position=None):
         """Centres the stream."""
         stream_centre = (self.limits[:, 1] + self.limits[:, 0]) / 2
         screen_centre = np.array(self.addressable_pixels) / 2
-        translation_vector = screen_centre - stream_centre
+        if position is None:
+            position = screen_centre
+        else:
+            position = np.array(position)
+        translation_vector = position - stream_centre
         self.dwells[:, 1:] += translation_vector[np.newaxis, :]
 
-    def write(self, file_path):
+    def write(self, file_path, centre=True):
         """Writes the stream to file_path"""
         # make sure the extension is .str
         file_path = os.path.splitext(file_path)[0] + '.str'
+        if centre:
+            self.recentre()
         # check that all the points are within limits
         if not self.is_valid():
             raise Exception(
@@ -68,7 +92,7 @@ class Stream:
             f.write(dwls_string)
 
     def show_on_screen(self):
-        ax = points2d(self.dwells[:, 1:])
+        ax, sc = points2d(self.dwells[:, 1:])
         ax.set_xlabel('x [px]')
         ax.set_ylabel('y [px]')
         ax.set_xlim([0, self.addressable_pixels[0]])

@@ -1,8 +1,7 @@
-from f3st.utils import intertwine_dwells
 import numpy as np
 import os
 from ..stream_builder import StreamBuilder
-from ..stream import Stream, CONVERSION_FACTOR
+from ..stream import Stream, intertwine_dwells
 
 
 def get_spot_dwells(t, position, max_dwt=5):
@@ -47,4 +46,4 @@ def export_spot_calibration(file_path, **kwargs):
     strm.write(file_path)
     data_path = os.path.splitext(file_path)[0] + '_data.csv'
     np.savetxt(data_path, data, delimiter='\t',
-               header="dwellTime\tpositionX\tpositionY", comments='')
+               header="dwellTime\tpositionX\tpositionY", comments='', fmt="%3f\t%d\t%d")

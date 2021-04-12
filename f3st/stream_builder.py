@@ -1,5 +1,6 @@
 from numpy.core.numeric import full
 from .stream import Stream
+from .solver import DwellSolver
 import numpy as np
 import warnings
 
@@ -20,6 +21,19 @@ class StreamBuilder:
         assert scanning_order in {
             "serial", "serpentine"}, "Unrecognized scanning order!"
         self.scanning_order = scanning_order
+
+    @classmethod
+    def from_struct(cls, model, struct, **kwargs):
+        # ensure that the structure is sliced
+        if struct.slices is None:
+            struct.generate_slices()
+        # get the dwells
+        dwell_solver = DwellSolver(model, struct)
+        dwell_solver.solve_dwells()
+        dwells_slices = dwell_solver.get_dwells_slices()
+        # build the class
+        stream_builder = cls(dwells_slices, **kwargs)
+        return stream_builder, dwell_solver
 
     @ property
     def ppn(self):

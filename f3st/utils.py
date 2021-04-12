@@ -2,6 +2,7 @@ import hjson
 import numpy as np
 import pickle
 import os
+from glob import glob
 
 
 def load_settings(file_path='settings.hjson'):
@@ -24,19 +25,13 @@ def load_build(file_path):
     return dwell_solver, stream_builder
 
 
-def intertwine_dwells(dwells_list):
-    """Takes the list of matrices of dwells and intertwines them."""
-    n_list = len(dwells_list)
-    size_list = [dwls.shape[0] for dwls in dwells_list]
-    max_rows = np.max(size_list)
-    total_length = np.sum(size_list)
-    dwells = np.zeros((total_length, 3))
-
-    cnt = 0
-    for i in range(max_rows):
-        for j in range(n_list):
-            if i >= dwells_list[j].shape[0]:
-                continue
-            dwells[cnt, :] = dwells_list[j][i, :]
-            cnt += 1
-    return dwells
+def create_safe_savename(path):
+    ext = os.path.splitext(path)[1]
+    path_noext = os.path.splitext(path)[0]
+    init_path = path_noext
+    i = 0
+    while len(glob(path_noext + '*')) > 0:
+        i += 1
+        path_noext = init_path + '_{:03}'.format(i)
+    path = path_noext + ext
+    return path

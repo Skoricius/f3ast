@@ -1,9 +1,10 @@
 from scipy.optimize import lsq_linear
 import numpy as np
 from tqdm import tqdm
-from .plotting import points3d
+from .plotting import plot_dwells
 from scipy.spatial import KDTree
 from datetime import timedelta
+import time
 
 
 def get_distance_matrix(sl, threshold):
@@ -18,8 +19,12 @@ class DwellSolver:
         self.structure = structure
         self.dwell_times_slices = None
 
-    def solve_dwells(self):
-        """Solves the dwells for dwell times and stores the result in self.dwell_times_slices"""
+    def solve_dwells(self, tol=1e-3):
+        """Solves the dwells for dwell times and stores the result in self.dwell_times_slices
+
+        Args:
+            tol (float, optional): Tolerance of the lsq_linear solver. Defaults to 1e-3.
+        """
         # ensure that the structure is sliced
         if self.structure.slices is None:
             self.structure.generate_slices()
@@ -32,18 +37,26 @@ class DwellSolver:
             N = sl.shape[0]
 
             # get the proximity matrix
+            t0 = time.time()
             distance_matrix = get_distance_matrix(
                 sl, self.model.get_nb_threshold())
             proximity_matrix = distance_matrix.copy()
             proximity_matrix.data = self.model.get_proximity_matrix(
                 distance_matrix.data, self.structure, i)
+            # print('Proximity: ', time.time() - t0)
 
+            t0 = time.time()
             # solve the optimization problem
             y = dz * np.ones(N)
-            result = lsq_linear(proximity_matrix, y, bounds=(0, np.inf))
+            # get a tight upper bound. We can never have larger dwell times than if there was no proximity.
+            upper_bound = dz / \
+                self.model.get_proximity_matrix(0, self.structure, i)
+            result = lsq_linear(proximity_matrix, y,
+                                bounds=(0, upper_bound), tol=tol)
             # remove the very small dwells
             dwell_times = result.x
             self.dwell_times_slices.append(dwell_times)
+            # print('Solving: ', time.time() - t0)
 
     def get_dwells_slices(self):
         """Returns the dwells for point as a per-slice list"""
@@ -61,7 +74,8 @@ class DwellSolver:
         dwells = self.get_dwells_matrix()
         if cutoff is not None:
             dwells = dwells[dwells[:, 0] > cutoff, :]
-        points3d(dwells[:, 1:], c=dwells[:, 0])
+        ax, sc = plot_dwells(dwells)
+        return ax, sc
 
     def print_total_time(self):
         """Prints the total stream time"""
