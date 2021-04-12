@@ -24,9 +24,19 @@ def load_build(file_path):
     return dwell_solver, stream_builder
 
 
-def intertwine_dwells(dwells1, dwells2):
-    """Takes the two matrices of dwells and intertwines them"""
-    dwells = np.zeros((dwells1.shape[0] + dwells2.shape[0], 3))
-    dwells[::2, :] = dwells1
-    dwells[1::2, :] = dwells2
+def intertwine_dwells(dwells_list):
+    """Takes the list of matrices of dwells and intertwines them."""
+    n_list = len(dwells_list)
+    size_list = [dwls.shape[0] for dwls in dwells_list]
+    max_rows = np.max(size_list)
+    total_length = np.sum(size_list)
+    dwells = np.zeros((total_length, 3))
+
+    cnt = 0
+    for i in range(max_rows):
+        for j in range(n_list):
+            if i >= dwells_list[j].shape[0]:
+                continue
+            dwells[cnt, :] = dwells_list[j][i, :]
+            cnt += 1
     return dwells
