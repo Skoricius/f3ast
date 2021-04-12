@@ -3,13 +3,14 @@ from .utils import load_settings
 import io
 from datetime import timedelta
 import os
+from .plotting import points2d
 
 # conversion factor from ms to 0.1us
 CONVERSION_FACTOR = 10000
 
 
 class Stream:
-    def __init__(self, dwells, addressable_pixels=[65536, 56576], max_dwt=50000):
+    def __init__(self, dwells, addressable_pixels=[65536, 56576], max_dwt=5):
         self.dwells = dwells
 
         self.addressable_pixels = addressable_pixels
@@ -26,8 +27,8 @@ class Stream:
     @property
     def limits(self):
         mnmx = np.zeros((2, 2))
-        mnmx[:, 0] = np.min(self.dwells[:, 1])
-        mnmx[:, 1] = np.max(self.dwells[:, 1])
+        mnmx[:, 0] = np.min(self.dwells[:, 1:], axis=0)
+        mnmx[:, 1] = np.max(self.dwells[:, 1:], axis=0)
         return mnmx
 
     def is_valid(self):
@@ -37,8 +38,8 @@ class Stream:
         return True
 
     def recentre(self):
-        """Centres the stream"""
-        stream_centre = self.limits[:, 1] - self.limits[:, 0]
+        """Centres the stream."""
+        stream_centre = (self.limits[:, 1] + self.limits[:, 0]) / 2
         screen_centre = np.array(self.addressable_pixels) / 2
         translation_vector = screen_centre - stream_centre
         self.dwells[:, 1:] += translation_vector[np.newaxis, :]
@@ -49,7 +50,8 @@ class Stream:
         file_path = os.path.splitext(file_path)[0] + '.str'
         # check that all the points are within limits
         if not self.is_valid():
-            Exception('Stream not valid! One of the dimensions is out of range.')
+            raise Exception(
+                'Stream not valid! One of the dimensions is out of range.')
 
         dwells_to_write = self.dwells.copy()
         dwells_to_write[:, 0] *= CONVERSION_FACTOR
@@ -65,6 +67,13 @@ class Stream:
         with open(file_path, 'w') as f:
             f.write(dwls_string)
 
+    def show_on_screen(self):
+        ax = points2d(self.dwells[:, 1:])
+        ax.set_xlabel('x [px]')
+        ax.set_ylabel('y [px]')
+        ax.set_xlim([0, self.addressable_pixels[0]])
+        ax.set_ylim([0, self.addressable_pixels[1]])
+
     def print_time(self):
         """Prints the total stream time"""
-        print(str(timedelta(microseconds=0.1 * np.sum(self.dwells[:, 0]))))
+        print(str(timedelta(milliseconds=np.sum(self.dwells[:, 0]))))

@@ -5,6 +5,7 @@ from .stream_builder import StreamBuilder
 from .solver import DwellSolver
 from .utils import *
 from .plotting import *
+from .calibration import *
 
 from types import ModuleType
 import sys

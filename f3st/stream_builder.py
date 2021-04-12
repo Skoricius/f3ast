@@ -33,7 +33,6 @@ class StreamBuilder:
             dwells = dwells[:, :3]
         stream = Stream(
             dwells, addressable_pixels=self.addressable_pixels, max_dwt=self.max_dwt)
-        stream.recentre()
         if not stream.is_valid():
             warnings.warn(
                 "Stream outside screen limits. Structure might be too large!")
@@ -71,4 +70,6 @@ class StreamBuilder:
     def split_dwells(dwells, max_dwt):
         """Takes a matrix of dwells and splits them so that none of them exceeds the max dwell time. Returns a list of N_reps items which are all the split dwells."""
         n_splits = int(np.ceil(np.max(dwells[:, 0]) / max_dwt))
-        return [dwells / n_splits for i in range(n_splits)]
+        dwells_reduced = dwells.copy()
+        dwells_reduced[:, 0] = dwells_reduced[:, 0] / n_splits
+        return [dwells_reduced for i in range(n_splits)]
