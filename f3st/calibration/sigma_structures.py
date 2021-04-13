@@ -19,7 +19,7 @@ def get_sigma_structures(model, sigma_list, width=75, length=800, angle=45):
     settings = load_settings()
 
     # get the straight ramp of minimal thickness
-    struct = get_straight_ramp(length, width, 0.1, 45)
+    struct = get_straight_ramp(length, width, 0.1, angle)
     struct.generate_slices()
 
     # solve for dwell times

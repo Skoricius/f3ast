@@ -2,7 +2,7 @@ import numpy as np
 import trimesh
 from .plotting import plot_mesh_mpl
 from .slicing import get_line_eqd_pts
-from .utils import load_settings
+from .resistance import split_intersection
 import numpy as np
 
 
@@ -14,6 +14,7 @@ class Structure(trimesh.Trimesh):
 
         self.file_path = file_path
         self.slices = None
+        self.branches = None
         self.z_levels = None
 
     @classmethod
@@ -37,6 +38,11 @@ class Structure(trimesh.Trimesh):
         self.slices = None
         self.z_levels = None
 
+    def is_sliced(self):
+        if self.slices is None:
+            return False
+        return True
+
     def plot_mpl(self):
         ax = plot_mesh_mpl(self)
         return ax
@@ -48,16 +54,26 @@ class Structure(trimesh.Trimesh):
 
         # get the heights of slices
         minz, maxz = self.bounds[0, 2], self.bounds[1, 2]
-        z_levels = np.arange(minz, maxz, slice_height)
+        self.z_levels = np.arange(minz, maxz, slice_height)
 
         # define the slicing plane
         plane_normal = np.array((0.0, 0.0, 1.0))
         plane_orig = np.zeros(3).astype(float)
 
-        intersection_lines, to_3D, face_index = trimesh.intersections.mesh_multiplane(
-            self, plane_orig, plane_normal, z_levels)
+        intersection_lines, _, _ = trimesh.intersections.mesh_multiplane(
+            self, plane_orig, plane_normal, self.z_levels)
 
+        # split into connected components (branches)
+        branch_intersections = [split_intersection(
+            inter) for inter in intersection_lines]
+        # split into equidistant points, keep track of connected components (branches)
         # can parallelize with joblib
-        self.slices = [get_line_eqd_pts(
-            line, self.pitch) for line in intersection_lines]
-        self.z_levels = z_levels
+        eqd_branches = [[(get_line_eqd_pts(
+            line, self.pitch), i) for i, line in enumerate(brinter)] for brinter in branch_intersections]
+        self.slices = [np.vstack([x[0] for x in eqbrch])
+                       for eqbrch in eqd_branches]
+        self.branches = [np.concatenate(
+            [x[1] * np.ones(x[0].shape[0]) for x in eqbrch]) for eqbrch in eqd_branches]
+
+        # self.slices = [get_line_eqd_pts(
+        #     line, self.pitch) for line in intersection_lines]
