@@ -1,4 +1,4 @@
-from f3st.utils import load_settings
+from f3ast.utils import load_settings
 import numpy as np
 from ..structure import Structure
 from scipy.spatial.transform import Rotation as R
@@ -58,7 +58,7 @@ def get_sigma_structures(model, sigma_list, width=75, length=800, angle=45):
 
 
 def get_straight_ramp(length, width, thickness, angle):
-    struct = Structure.from_file('f3st/calibration/cube.stl')
+    struct = Structure.from_file('f3ast/calibration/cube.stl')
     transf_matrix = np.eye(4)
     transf_matrix[3, 3] = 0  # don't translate
     transf_matrix[0, 0] = length
