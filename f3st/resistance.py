@@ -2,7 +2,16 @@ import numpy as np
 import numpy.linalg as la
 
 
-def get_resistance(struct, single_pixel_width=50):
+def get_resistance(struct, single_pixel_width=50.):
+    """Gets the resistance for each slice and for each point in a slice.
+
+    Args:
+        struct (Structure)
+        single_pixel_width (float, optional): Width of a single pixel line. Defaults to 50.
+
+    Returns:
+        resistance_slices: Resistance per point in the slice.
+    """
 
     slices = struct.slices
     branches = struct.branches

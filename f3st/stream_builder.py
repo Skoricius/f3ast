@@ -23,12 +23,9 @@ class StreamBuilder:
         self.scanning_order = scanning_order
 
     @classmethod
-    def from_struct(cls, model, struct, **kwargs):
-        # ensure that the structure is sliced
-        if struct.slices is None:
-            struct.generate_slices()
+    def from_model(cls, model, **kwargs):
         # get the dwells
-        dwell_solver = DwellSolver(model, struct)
+        dwell_solver = DwellSolver(model)
         dwell_solver.solve_dwells()
         dwells_slices = dwell_solver.get_dwells_slices()
         # build the class
@@ -40,16 +37,26 @@ class StreamBuilder:
         """Pixels per nanometer"""
         return self.addressable_pixels[0] / self.screen_width
 
-    def get_stream(self):
+    def get_stream(self, centre=False):
+        """Builds the stream object from the calculated dwells
+
+        Args:
+            centre (bool, optional): Wether to centre the stream on the screen. Defaults to False.
+
+        Returns:
+            Stream
+        """
         dwells = self.get_stream_dwells()
         # if the dwells include the z direction, get rid of that
         if dwells.shape[1] > 3:
             dwells = dwells[:, :3]
         stream = Stream(
             dwells, addressable_pixels=self.addressable_pixels, max_dwt=self.max_dwt)
-        if not stream.is_valid():
-            warnings.warn(
-                "Stream outside screen limits. Structure might be too large!")
+        if centre:
+            stream.recentre()
+            if not stream.is_valid():
+                warnings.warn(
+                    "Stream outside screen limits. Structure might be too large!")
         return stream
 
     def get_stream_dwells(self):

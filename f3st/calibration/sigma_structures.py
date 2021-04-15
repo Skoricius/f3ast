@@ -20,20 +20,21 @@ def get_sigma_structures(model, sigma_list, width=75, length=800, angle=45):
 
     # get the straight ramp of minimal thickness
     struct = get_straight_ramp(length, width, 0.1, angle)
-    struct.generate_slices()
+    model.set_structure(struct)
 
     # solve for dwell times
     sigma_strm_list = []
     for s in sigma_list:
         model.sigma = s
-        stream_builder, _ = StreamBuilder.from_struct(
-            model, struct, **settings['stream_builder'])
+        stream_builder, _ = StreamBuilder.from_model(
+            model, **settings['stream_builder'])
         sigma_strm_list.append(stream_builder.get_stream())
 
     # get the single pixel line
     struct_1px = get_straight_ramp(length, 0.1, 0.1, 45)
-    stream_builder, _ = StreamBuilder.from_struct(
-        model, struct, **settings['stream_builder'])
+    model.set_structure(struct_1px)
+    stream_builder, _ = StreamBuilder.from_model(
+        model, **settings['stream_builder'])
     strm_1px = stream_builder.get_stream()
 
     # arange on a screen

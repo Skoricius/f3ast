@@ -14,9 +14,8 @@ def get_distance_matrix(sl, threshold):
 
 
 class DwellSolver:
-    def __init__(self, model, structure):
+    def __init__(self, model):
         self.model = model
-        self.structure = structure
         self.dwell_times_slices = None
 
     def solve_dwells(self, tol=1e-3):
@@ -25,45 +24,32 @@ class DwellSolver:
         Args:
             tol (float, optional): Tolerance of the lsq_linear solver. Defaults to 1e-3.
         """
-        # ensure that the structure is sliced
-        if self.structure.slices is None:
-            self.structure.generate_slices()
         # get the thickness of layers
-        dz_slices = self.structure.z_levels[1:] - self.structure.z_levels[:-1]
-        # solve for each layer. TODO: this could be paralellized
-        # TODO: no need to pass the whole structure to the model. Only pass the relevant slice data.
-        self.dwell_times_slices = list()
-        for i, (dz, sl) in tqdm(enumerate(zip(dz_slices, self.structure.slices[:-1]))):
-            N = sl.shape[0]
-
-            # get the proximity matrix
-            t0 = time.time()
-            distance_matrix = get_distance_matrix(
-                sl, self.model.get_nb_threshold())
-            proximity_matrix = distance_matrix.copy()
-            proximity_matrix.data = self.model.get_proximity_matrix(
-                distance_matrix.data, self.structure, i)
-            # print('Proximity: ', time.time() - t0)
-
-            t0 = time.time()
+        dz_slices = self.model.struct.dz_slices
+        n_layers = dz_slices.size
+        # get the generator for the proximity matrix
+        prox_matrix_generator = (self.model.get_proximity_matrix(lyr)
+                                 for lyr in range(n_layers))
+        dwell_times_slices = list()
+        # solve for each layer. TODO: this could be paralellized to get it working faster
+        for proximity_matrix, dz in tqdm(zip(prox_matrix_generator, dz_slices)):
+            # get a tight upper bound for faster computation. We can never have larger dwell times than if there was no proximity (proximity matrix was diagonal)
+            upper_bound = dz / proximity_matrix.diagonal()
             # solve the optimization problem
-            y = dz * np.ones(N)
-            # get a tight upper bound. We can never have larger dwell times than if there was no proximity.
-            upper_bound = dz / \
-                self.model.get_proximity_matrix(0, self.structure, i)
+            y = dz * np.ones(proximity_matrix.shape[1])
             result = lsq_linear(proximity_matrix, y,
                                 bounds=(0, upper_bound), tol=tol)
-            # remove the very small dwells
             dwell_times = result.x
-            self.dwell_times_slices.append(dwell_times)
-            # print('Solving: ', time.time() - t0)
+            dwell_times_slices.append(dwell_times)
+        self.dwell_times_slices = dwell_times_slices
 
     def get_dwells_slices(self):
         """Returns the dwells for point as a per-slice list"""
         if self.dwell_times_slices is None:
             self.solve_dwells()
-        return [np.hstack((dwt[:, np.newaxis], sl, z * np.ones((sl.shape[0], 1)))) for dwt, sl, z in zip(
-                self.dwell_times_slices, self.structure.slices, self.structure.z_levels)]
+        slices3d = self.model.struct.get_3dslices()
+        return [np.hstack([dwt[:, np.newaxis], sl3d]) for dwt, sl3d in zip(
+                self.dwell_times_slices, slices3d)]
 
     def get_dwells_matrix(self):
         """Returns the concatenated array of dwells for each point in a Nx4 array (time, x, y, z)"""

@@ -1,6 +1,6 @@
 import numpy as np
 import trimesh
-from .plotting import plot_mesh_mpl
+from .plotting import plot_mesh_mpl, points3d
 from .slicing import get_line_eqd_pts, get_lines_length, split_intersection
 from scipy.spatial import KDTree
 import numpy as np
@@ -13,11 +13,7 @@ class Structure(trimesh.Trimesh):
         self.fill = fill
 
         self.file_path = file_path
-        self.slices = None
-        self.branches = None
-        self.branch_lengths = None
-        self.branch_connections = None
-        self.z_levels = None
+        self.clear_slicing()
 
     @classmethod
     def from_file(cls, file_path, **kwargs):
@@ -28,6 +24,42 @@ class Structure(trimesh.Trimesh):
                      file_path=file_path, **kwargs)
         return struct
 
+    @property
+    def slices(self):
+        if self._slices is None:
+            self.generate_slices()
+        return self._slices
+
+    @property
+    def branches(self):
+        if self._branches is None:
+            self.generate_slices()
+        return self._branches
+
+    @property
+    def branch_lengths(self):
+        if self._branch_lengths is None:
+            self.generate_slices()
+        return self._branch_lengths
+
+    @property
+    def branch_connections(self):
+        if self._branch_connections is None:
+            self.generate_slices()
+        return self._branch_connections
+
+    @property
+    def z_levels(self):
+        if self._z_levels is None:
+            self.generate_slices()
+        return self._z_levels
+
+    @property
+    def dz_slices(self):
+        """The thickness of layers
+        """
+        return self.z_levels[1:] - self.z_levels[:-1]
+
     def rescale(self, scale):
         """Scales the mesh by the scale factor"""
         transf = np.eye(4)
@@ -37,8 +69,11 @@ class Structure(trimesh.Trimesh):
         self.clear_slicing()
 
     def clear_slicing(self):
-        self.slices = None
-        self.z_levels = None
+        self._slices = None
+        self._branches = None
+        self._branch_lengths = None
+        self._branch_connections = None
+        self._z_levels = None
 
     def is_sliced(self):
         if self.slices is None:
@@ -49,7 +84,31 @@ class Structure(trimesh.Trimesh):
         ax = plot_mesh_mpl(self)
         return ax
 
+    def get_3dslices(self):
+        """Gets the slices with appended z values
+
+        Returns:
+            slices (list of (n,3) arrays)
+        """
+        return [np.hstack(
+            [sl, z * np.ones((sl.shape[0], 1))]) for sl, z in zip(self.slices, self.z_levels)]
+
+    def get_sliced_points(self):
+        """Gets the sliced points in a matrix form.
+
+        Returns:
+            points ((n, 3) array)
+        """
+        points = np.vstack(self.get_3dslices())
+        return points
+
+    def plot_slices(self, *args, **kwargs):
+        points = self.get_sliced_points()
+        ax = points3d(points, *args, **kwargs)
+        return ax
+
     def generate_slices(self):
+        print('Slicing...')
         intersection_lines = self.get_intersection_lines()
 
         # split into connected components (branches)
@@ -57,11 +116,11 @@ class Structure(trimesh.Trimesh):
             inter) for inter in intersection_lines]
 
         # get equally separated points and branch indices
-        self.slices, self.branches, self.branch_lengths = self.split_eqd(
+        self._slices, self._branches, self._branch_lengths = self.split_eqd(
             branch_intersections_slices)
 
         # get branch connectivity
-        self.branch_connections = self.get_branch_connections()
+        self._branch_connections = self.get_branch_connections()
 
     def get_intersection_lines(self):
         mindz = self.pitch / 5
@@ -70,7 +129,7 @@ class Structure(trimesh.Trimesh):
 
         # get the heights of slices
         minz, maxz = self.bounds[0, 2], self.bounds[1, 2]
-        self.z_levels = np.arange(minz, maxz, slice_height)
+        self._z_levels = np.arange(minz, maxz, slice_height)
 
         # define the slicing plane
         plane_normal = np.array((0.0, 0.0, 1.0))
