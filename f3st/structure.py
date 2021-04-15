@@ -1,8 +1,8 @@
 import numpy as np
 import trimesh
 from .plotting import plot_mesh_mpl
-from .slicing import get_line_eqd_pts
-from .resistance import split_intersection
+from .slicing import get_line_eqd_pts, get_lines_length, split_intersection
+from scipy.spatial import KDTree
 import numpy as np
 
 
@@ -15,6 +15,8 @@ class Structure(trimesh.Trimesh):
         self.file_path = file_path
         self.slices = None
         self.branches = None
+        self.branch_lengths = None
+        self.branch_connections = None
         self.z_levels = None
 
     @classmethod
@@ -48,6 +50,20 @@ class Structure(trimesh.Trimesh):
         return ax
 
     def generate_slices(self):
+        intersection_lines = self.get_intersection_lines()
+
+        # split into connected components (branches)
+        branch_intersections_slices = [split_intersection(
+            inter) for inter in intersection_lines]
+
+        # get equally separated points and branch indices
+        self.slices, self.branches, self.branch_lengths = self.split_eqd(
+            branch_intersections_slices)
+
+        # get branch connectivity
+        self.branch_connections = self.get_branch_connections()
+
+    def get_intersection_lines(self):
         mindz = self.pitch / 5
         maxdz = 2 * self.pitch
         slice_height = self.pitch / 2
@@ -62,18 +78,46 @@ class Structure(trimesh.Trimesh):
 
         intersection_lines, _, _ = trimesh.intersections.mesh_multiplane(
             self, plane_orig, plane_normal, self.z_levels)
+        return intersection_lines
 
-        # split into connected components (branches)
-        branch_intersections = [split_intersection(
-            inter) for inter in intersection_lines]
+    def split_eqd(self, branch_intersections_slices):
         # split into equidistant points, keep track of connected components (branches)
         # can parallelize with joblib
-        eqd_branches = [[(get_line_eqd_pts(
-            line, self.pitch), i) for i, line in enumerate(brinter)] for brinter in branch_intersections]
-        self.slices = [np.vstack([x[0] for x in eqbrch])
-                       for eqbrch in eqd_branches]
-        self.branches = [np.concatenate(
-            [x[1] * np.ones(x[0].shape[0]) for x in eqbrch]) for eqbrch in eqd_branches]
+        slices = []
+        branches = []
+        branch_lengths = []
+        for branch_intersections in branch_intersections_slices:
+            branches_pts = [get_line_eqd_pts(
+                lines, self.pitch) for lines in branch_intersections]
+            slices.append(np.vstack(branches_pts))
+            branches.append(np.concatenate(
+                [i * np.ones(brpts.shape[0]) for i, brpts in enumerate(branches_pts)]))
+            branch_lengths.append(
+                [get_lines_length(lines) for lines in branch_intersections])
+        return slices, branches, branch_lengths
 
-        # self.slices = [get_line_eqd_pts(
-        #     line, self.pitch) for line in intersection_lines]
+    def get_branch_connections(self):
+        connection_distance = self.pitch + 0.01
+        branch_connections = []
+        for i, (pts, branch) in enumerate(zip(self.slices, self.branches)):
+            unique_br = np.unique(branch)
+            # separate the points into branches
+            separated_pts = [pts[branch == lbl, :] for lbl in unique_br]
+            if i == 0:
+                branch_connections.append([])
+                separated_pts_below = separated_pts
+                continue
+            this_slice_connections = []
+            for br_pts in separated_pts:
+                this_branch_connections = []
+                tree = KDTree(br_pts)
+                for k, branch_pts_below in enumerate(separated_pts_below):
+                    tree_branch_below = KDTree(branch_pts_below)
+                    dist_matrix = tree.sparse_distance_matrix(
+                        tree_branch_below, max_distance=connection_distance)
+                    if dist_matrix.count_nonzero() > 0:
+                        this_branch_connections.append(k)
+                this_slice_connections.append(this_branch_connections)
+            branch_connections.append(this_slice_connections)
+            separated_pts_below = separated_pts
+        return branch_connections
