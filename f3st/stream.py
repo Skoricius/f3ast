@@ -98,6 +98,9 @@ class Stream:
         ax.set_xlim([0, self.addressable_pixels[0]])
         ax.set_ylim([0, self.addressable_pixels[1]])
 
+    def get_time(self):
+        return timedelta(milliseconds=np.sum(self.dwells[:, 0]))
+
     def print_time(self):
         """Prints the total stream time"""
-        print(str(timedelta(milliseconds=np.sum(self.dwells[:, 0]))))
+        print('Total time: ', str(self.get_time()))

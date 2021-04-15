@@ -43,6 +43,7 @@ def get_spot_calibration(grid=[5, 3], start_time=1, end_time=15, shuffle=True, a
 def export_spot_calibration(file_path, **kwargs):
     """Convinience function to immediately save the calibration stream. Takes all the keywords parameter of the get_spot_calibration"""
     strm, data = get_spot_calibration(**kwargs)
+    strm.print_time()
     strm.write(file_path)
     data_path = os.path.splitext(file_path)[0] + '_data.csv'
     np.savetxt(data_path, data, delimiter='\t',
