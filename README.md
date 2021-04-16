@@ -1,4 +1,4 @@
-# FEBID 3D Algorithm for Stream File Generation (F3AST)
+# FEBID 3D Algorithm for Stream File generation (F3AST)
 
 ## Installation
 Eventually, this should be installable with
@@ -12,7 +12,7 @@ pip install -r requirements
 ```
 
 # Usage
-Microscope settings are defined in `settings.hjson' file and contain information about the microscope and basic slicing settings.
+Microscope settings are defined in `settings.hjson` file and contain information about the microscope and basic slicing settings.
 In the following example, we load the structure and the settings, define the deposit model we are using, and build the stream.
 
 ```python
