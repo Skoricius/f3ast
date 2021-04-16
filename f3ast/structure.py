@@ -111,7 +111,7 @@ class Structure(trimesh.Trimesh):
 
     def generate_slices(self):
         print('Slicing...')
-        intersection_lines = self.get_intersection_lines()
+        intersection_lines, self._z_levels = self.get_intersection_lines()
 
         # split into connected components (branches)
         branch_intersections_slices = [split_intersection(
@@ -134,15 +134,21 @@ class Structure(trimesh.Trimesh):
 
         # get the heights of slices
         minz, maxz = self.bounds[0, 2], self.bounds[1, 2]
-        self._z_levels = np.arange(minz, maxz, slice_height)
+        z_levels = np.arange(minz, maxz, slice_height)
 
         # define the slicing plane
         plane_normal = np.array((0.0, 0.0, 1.0))
         plane_orig = np.zeros(3).astype(float)
 
         intersection_lines, _, _ = trimesh.intersections.mesh_multiplane(
-            self, plane_orig, plane_normal, self.z_levels)
-        return intersection_lines
+            self, plane_orig, plane_normal, z_levels)
+        # drop the empty intersections
+        nonempty = np.array(
+            len(inter) != 0 for inter in intersection_lines).astype(bool)
+        z_levels = z_levels[nonempty].flatten()
+        intersection_lines = [
+            inter for inter in intersection_lines if len(inter) != 0]
+        return intersection_lines, z_levels
 
     def split_eqd(self, branch_intersections_slices):
         # split into equidistant points, keep track of connected components (branches)
@@ -162,7 +168,8 @@ class Structure(trimesh.Trimesh):
         return slices, branches, branch_lengths
 
     def get_branch_connections(self):
-        connection_distance = self.pitch + 0.01
+        # connection distance is a diagonal with
+        connection_distance = self.pitch + 0.1
         branch_connections = []
         with Parallel(n_jobs=5, backend="threading") as parallel:
             for i, (pts, branch) in enumerate(zip(self.slices, self.branches)):
@@ -190,8 +197,8 @@ class Structure(trimesh.Trimesh):
         tree = KDTree(br_pts)
         for k, branch_pts_below in enumerate(separated_pts_below):
             tree_branch_below = KDTree(branch_pts_below)
-            dist_matrix = tree.sparse_distance_matrix(
-                tree_branch_below, max_distance=connection_distance)
-            if dist_matrix.count_nonzero() > 0:
+            nbs = tree.count_neighbors(
+                tree_branch_below, connection_distance, p=np.inf)
+            if nbs > 0:
                 this_branch_connections.append(k)
         return this_branch_connections

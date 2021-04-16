@@ -42,7 +42,6 @@ For a full step-by-step example, see `BuildStructure.ipynb`.
 For acquiring calibration parameters, see `CalibrationAnalysis.ipynb`.
 
 
-
 ## TO DO
 * progressive slicing
 * check the possible issue with slicing of the last and first node being connected when they are not supposed to
@@ -50,3 +49,4 @@ For acquiring calibration parameters, see `CalibrationAnalysis.ipynb`.
 * Check that the resistance is calculated well by comparing with MATLAB (single pixel, branches etc.)
 * Check that you get similar deposition times as in MATLAB
 * Check that single sheet structures are working well
+* Put package on PyPi: https://packaging.python.org/tutorials/packaging-projects/

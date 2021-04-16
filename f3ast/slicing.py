@@ -58,7 +58,12 @@ def split_intersection(intersection):
     grouped_indices = np.array(
         [[l, i] for i, ls in enumerate(grouped_rows) for l in ls])
     # get the indices sorted so that i-th element of node_indices corresponds to the i-th point
-    arg = np.argsort(grouped_indices[:, 0])
+    try:
+        arg = np.argsort(grouped_indices[:, 0])
+    except IndexError:
+        print(len(intersection))
+        print(intersection)
+        raise Exception()
     node_indices = grouped_indices[arg, 1]
     # label the connected components
     edges = node_indices.reshape(-1, 2)
