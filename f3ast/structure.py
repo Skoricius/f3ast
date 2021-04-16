@@ -1,9 +1,11 @@
+from joblib.parallel import Parallel, delayed
 import numpy as np
 import trimesh
 from .plotting import plot_mesh_mpl, points3d
 from .slicing import get_line_eqd_pts, get_lines_length, split_intersection
 from scipy.spatial import KDTree
 import numpy as np
+import time
 
 
 class Structure(trimesh.Trimesh):
@@ -119,8 +121,11 @@ class Structure(trimesh.Trimesh):
         self._slices, self._branches, self._branch_lengths = self.split_eqd(
             branch_intersections_slices)
 
-        # get branch connectivity
+        # get branch connectivity. This is the slowest part and might not be necessary if not doing the resistance.
+        # t0 = time.time()
         self._branch_connections = self.get_branch_connections()
+        # print(time.time() - t0)
+        print('Sliced')
 
     def get_intersection_lines(self):
         mindz = self.pitch / 5
@@ -148,6 +153,7 @@ class Structure(trimesh.Trimesh):
         for branch_intersections in branch_intersections_slices:
             branches_pts = [get_line_eqd_pts(
                 lines, self.pitch) for lines in branch_intersections]
+
             slices.append(np.vstack(branches_pts))
             branches.append(np.concatenate(
                 [i * np.ones(brpts.shape[0]) for i, brpts in enumerate(branches_pts)]))
@@ -158,25 +164,34 @@ class Structure(trimesh.Trimesh):
     def get_branch_connections(self):
         connection_distance = self.pitch + 0.01
         branch_connections = []
-        for i, (pts, branch) in enumerate(zip(self.slices, self.branches)):
-            unique_br = np.unique(branch)
-            # separate the points into branches
-            separated_pts = [pts[branch == lbl, :] for lbl in unique_br]
-            if i == 0:
-                branch_connections.append([])
+        with Parallel(n_jobs=5, backend="threading") as parallel:
+            for i, (pts, branch) in enumerate(zip(self.slices, self.branches)):
+                unique_br = np.unique(branch)
+                # separate the points into branches
+                separated_pts = [pts[branch == lbl, :] for lbl in unique_br]
+                if i == 0:
+                    branch_connections.append([])
+                    separated_pts_below = separated_pts
+                    continue
+
+                # for each branch, get connection to the branches below. This is parallelized for efficiency
+                def f(x): return self.get_branch_connections_in_slice(
+                    x, separated_pts_below, connection_distance)
+                this_slice_connections = parallel(
+                    delayed(f)(br_pts) for br_pts in separated_pts)
+
+                branch_connections.append(this_slice_connections)
                 separated_pts_below = separated_pts
-                continue
-            this_slice_connections = []
-            for br_pts in separated_pts:
-                this_branch_connections = []
-                tree = KDTree(br_pts)
-                for k, branch_pts_below in enumerate(separated_pts_below):
-                    tree_branch_below = KDTree(branch_pts_below)
-                    dist_matrix = tree.sparse_distance_matrix(
-                        tree_branch_below, max_distance=connection_distance)
-                    if dist_matrix.count_nonzero() > 0:
-                        this_branch_connections.append(k)
-                this_slice_connections.append(this_branch_connections)
-            branch_connections.append(this_slice_connections)
-            separated_pts_below = separated_pts
         return branch_connections
+
+    @ staticmethod
+    def get_branch_connections_in_slice(br_pts, separated_pts_below, connection_distance):
+        this_branch_connections = []
+        tree = KDTree(br_pts)
+        for k, branch_pts_below in enumerate(separated_pts_below):
+            tree_branch_below = KDTree(branch_pts_below)
+            dist_matrix = tree.sparse_distance_matrix(
+                tree_branch_below, max_distance=connection_distance)
+            if dist_matrix.count_nonzero() > 0:
+                this_branch_connections.append(k)
+        return this_branch_connections

@@ -1,4 +1,4 @@
-from numba import njit, config
+from numba import njit, config, prange
 import numpy.linalg as la
 import numpy as np
 from trimesh.grouping import group_rows
@@ -10,16 +10,16 @@ config.THREADING_LAYER = 'threadsafe'
 
 @njit(parallel=True, fastmath=True)
 def _numba_eqd_pts(start_nodes, conn_vecs, n_steps):
-
     pts = np.zeros((np.sum(n_steps), 2))
-    start_indx = 0
-    for i in range(n_steps.shape[0]):
-        end_indx = start_indx + n_steps[i]
+    end_indices = np.cumsum(n_steps)
+    start_indices = np.zeros(end_indices.shape[0]).astype(np.uint32)
+    start_indices[1:] = end_indices[:-1]
+    for i in prange(n_steps.shape[0]):
+        end_indx = end_indices[i]
+        start_indx = start_indices[i]
         n = n_steps[i]
         pts[start_indx:end_indx, :] = start_nodes[i, :].reshape(
             1, -1) + conn_vecs[i, :].reshape(1, -1) * np.arange(n).reshape(-1, 1) / n
-        start_indx = end_indx
-
     return pts
 
 

@@ -5,6 +5,7 @@ from .plotting import plot_dwells
 from scipy.spatial import KDTree
 from datetime import timedelta
 import time
+from joblib import Parallel, delayed
 
 
 def get_distance_matrix(sl, threshold):
@@ -18,12 +19,13 @@ class DwellSolver:
         self.model = model
         self.dwell_times_slices = None
 
-    def solve_dwells(self, tol=1e-3):
+    def solve_dwells(self, n_jobs=5):
         """Solves the dwells for dwell times and stores the result in self.dwell_times_slices
 
         Args:
             tol (float, optional): Tolerance of the lsq_linear solver. Defaults to 1e-3.
         """
+        print('Solving for dwells...')
         # get the thickness of layers
         dz_slices = self.model.struct.dz_slices
         n_layers = dz_slices.size
@@ -31,17 +33,31 @@ class DwellSolver:
         prox_matrix_generator = (self.model.get_proximity_matrix(lyr)
                                  for lyr in range(n_layers))
         dwell_times_slices = list()
-        # solve for each layer. TODO: this could be paralellized to get it working faster
-        for proximity_matrix, dz in tqdm(zip(prox_matrix_generator, dz_slices)):
-            # get a tight upper bound for faster computation. We can never have larger dwell times than if there was no proximity (proximity matrix was diagonal)
-            upper_bound = dz / proximity_matrix.diagonal()
-            # solve the optimization problem
-            y = dz * np.ones(proximity_matrix.shape[1])
-            result = lsq_linear(proximity_matrix, y,
-                                bounds=(0, upper_bound), tol=tol)
-            dwell_times = result.x
-            dwell_times_slices.append(dwell_times)
+        # solve for each layer. Do this in parallel to speed up.
+        dwell_times_slices = Parallel(n_jobs=n_jobs)(delayed(self.solve_layer)(
+            proximity_matrix, dz) for proximity_matrix, dz in zip(prox_matrix_generator, dz_slices))
         self.dwell_times_slices = dwell_times_slices
+        print('Solved')
+
+    @staticmethod
+    def solve_layer(proximity_matrix, dz, tol=1e-3):
+        """Solves a layer proximity problem given a proximity matrix and the layer height.
+
+        Args:
+            proximity_matrix (sparse matrix): Proximity matrix
+            dz (float): Layer height
+            tol (float, optional): Tolerance for the optimization. Defaults to 1e-3.
+
+        Returns:
+            dwell_times: Array of dwell times as a solution for the layer.
+        """
+        # get a tight upper bound for faster computation. We can never have larger dwell times than if there was no proximity (proximity matrix was diagonal)
+        upper_bound = dz / proximity_matrix.diagonal()
+        # solve the optimization problem
+        y = dz * np.ones(proximity_matrix.shape[1])
+        result = lsq_linear(proximity_matrix, y,
+                            bounds=(0, upper_bound), tol=tol)
+        return result.x
 
     def get_dwells_slices(self):
         """Returns the dwells for point as a per-slice list"""
