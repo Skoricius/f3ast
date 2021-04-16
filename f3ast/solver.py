@@ -1,6 +1,5 @@
 from scipy.optimize import lsq_linear
 import numpy as np
-from tqdm import tqdm
 from .plotting import plot_dwells
 from scipy.spatial import KDTree
 from datetime import timedelta
