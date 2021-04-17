@@ -47,7 +47,8 @@ def get_resistance(struct, single_pixel_width=50.):
                 layer_sep = np.sqrt(
                     la.norm(center_curr - center_below)**2 + dz**2)
                 connection_resistance = resistances_below[c] + \
-                    layer_sep / (brlens[j] + single_pixel_width)
+                    single_pixel_width * layer_sep / \
+                    (brlens[j] + single_pixel_width)
                 r_inv += 1 / connection_resistance
             r = 1 / r_inv if r_inv != 0 else 0
             resistance[branch == j] = r

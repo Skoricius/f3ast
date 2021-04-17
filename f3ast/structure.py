@@ -1,10 +1,11 @@
-from joblib.parallel import Parallel, delayed
+
 import numpy as np
 import trimesh
 from .plotting import plot_mesh_mpl, points3d
-from .slicing import get_line_eqd_pts, get_lines_length, split_intersection
-from scipy.spatial import KDTree
+from .slicing import split_eqd
+from .branches import split_intersection, get_branch_connections
 import numpy as np
+from trimesh.intersections import mesh_multiplane
 import time
 
 
@@ -47,7 +48,7 @@ class Structure(trimesh.Trimesh):
     @property
     def branch_connections(self):
         if self._branch_connections is None:
-            self.generate_slices()
+            self.generate_slices(branch_connectivity=True)
         return self._branch_connections
 
     @property
@@ -109,7 +110,7 @@ class Structure(trimesh.Trimesh):
         ax = points3d(points, *args, **kwargs)
         return ax
 
-    def generate_slices(self):
+    def generate_slices(self, branch_connectivity=True):
         print('Slicing...')
         intersection_lines, self._z_levels = self.get_intersection_lines()
 
@@ -117,14 +118,18 @@ class Structure(trimesh.Trimesh):
         branch_intersections_slices = [split_intersection(
             inter) for inter in intersection_lines]
 
-        # get equally separated points and branch indices
-        self._slices, self._branches, self._branch_lengths = self.split_eqd(
-            branch_intersections_slices)
-
         # get branch connectivity. This is the slowest part and might not be necessary if not doing the resistance.
         # t0 = time.time()
-        self._branch_connections = self.get_branch_connections()
+        if branch_connectivity:
+            connection_distance = self.pitch + 0.01
+            self._branch_connections = get_branch_connections(
+                branch_intersections_slices, connection_distance)
         # print(time.time() - t0)
+
+        # get equally separated points and branch indices
+        self._slices, self._branches, self._branch_lengths = split_eqd(
+            branch_intersections_slices, self.pitch)
+
         print('Sliced')
 
     def get_intersection_lines(self):
@@ -140,7 +145,7 @@ class Structure(trimesh.Trimesh):
         plane_normal = np.array((0.0, 0.0, 1.0))
         plane_orig = np.zeros(3).astype(float)
 
-        intersection_lines, _, _ = trimesh.intersections.mesh_multiplane(
+        intersection_lines, _, _ = mesh_multiplane(
             self, plane_orig, plane_normal, z_levels)
         # drop the empty intersections
         nonempty = np.array(
@@ -149,56 +154,3 @@ class Structure(trimesh.Trimesh):
         intersection_lines = [
             inter for inter in intersection_lines if len(inter) != 0]
         return intersection_lines, z_levels
-
-    def split_eqd(self, branch_intersections_slices):
-        # split into equidistant points, keep track of connected components (branches)
-        # can parallelize with joblib
-        slices = []
-        branches = []
-        branch_lengths = []
-        for branch_intersections in branch_intersections_slices:
-            branches_pts = [get_line_eqd_pts(
-                lines, self.pitch) for lines in branch_intersections]
-
-            slices.append(np.vstack(branches_pts))
-            branches.append(np.concatenate(
-                [i * np.ones(brpts.shape[0]) for i, brpts in enumerate(branches_pts)]))
-            branch_lengths.append(
-                [get_lines_length(lines) for lines in branch_intersections])
-        return slices, branches, branch_lengths
-
-    def get_branch_connections(self):
-        # connection distance is a diagonal with
-        connection_distance = self.pitch + 0.1
-        branch_connections = []
-        with Parallel(n_jobs=5, backend="threading") as parallel:
-            for i, (pts, branch) in enumerate(zip(self.slices, self.branches)):
-                unique_br = np.unique(branch)
-                # separate the points into branches
-                separated_pts = [pts[branch == lbl, :] for lbl in unique_br]
-                if i == 0:
-                    branch_connections.append([])
-                    separated_pts_below = separated_pts
-                    continue
-
-                # for each branch, get connection to the branches below. This is parallelized for efficiency
-                def f(x): return self.get_branch_connections_in_slice(
-                    x, separated_pts_below, connection_distance)
-                this_slice_connections = parallel(
-                    delayed(f)(br_pts) for br_pts in separated_pts)
-
-                branch_connections.append(this_slice_connections)
-                separated_pts_below = separated_pts
-        return branch_connections
-
-    @ staticmethod
-    def get_branch_connections_in_slice(br_pts, separated_pts_below, connection_distance):
-        this_branch_connections = []
-        tree = KDTree(br_pts)
-        for k, branch_pts_below in enumerate(separated_pts_below):
-            tree_branch_below = KDTree(branch_pts_below)
-            nbs = tree.count_neighbors(
-                tree_branch_below, connection_distance, p=np.inf)
-            if nbs > 0:
-                this_branch_connections.append(k)
-        return this_branch_connections

@@ -1,8 +1,6 @@
 from numba import njit, config, prange
 import numpy.linalg as la
 import numpy as np
-from trimesh.grouping import group_rows
-from trimesh.graph import connected_component_labels
 
 # set the threading layer before any parallel target compilation
 config.THREADING_LAYER = 'threadsafe'
@@ -43,37 +41,19 @@ def get_lines_length(lines):
     return np.sum(la.norm(lines[:, 1, :] - lines[:, 0, :], axis=1))
 
 
-def split_intersection(intersection):
-    """Splits the intersection into connected components.
+def split_eqd(branch_intersections_slices, pitch):
+    # split into equidistant points, keep track of connected components (branches)
+    # can parallelize with joblib
+    slices = []
+    branches = []
+    branch_lengths = []
+    for branch_intersections in branch_intersections_slices:
+        branches_pts = [get_line_eqd_pts(
+            lines, pitch) for lines in branch_intersections]
 
-    Args:
-        intersection ((n,2,2)): array of intersection lines
-
-    Returns:
-        (m,) list of (k,2,2) intersections: intersections grouped into components
-    """
-    # group the same points in the intersections
-    grouped_rows = group_rows(intersection.reshape(-1, 2))
-    # assign each point an index.
-    grouped_indices = np.array(
-        [[l, i] for i, ls in enumerate(grouped_rows) for l in ls])
-    # get the indices sorted so that i-th element of node_indices corresponds to the i-th point
-    try:
-        arg = np.argsort(grouped_indices[:, 0])
-    except IndexError:
-        print(len(intersection))
-        print(intersection)
-        raise Exception()
-    node_indices = grouped_indices[arg, 1]
-    # label the connected components
-    edges = node_indices.reshape(-1, 2)
-    conn_labels = connected_component_labels(
-        edges, node_count=len(grouped_rows))
-    # conn labels correspond to the nodes. Label each edge by one of its nodes.
-    edge_labels = conn_labels[edges[:, 0]]
-
-    unique_lbls = np.unique(conn_labels)
-    split_intersection = []
-    for lbl in unique_lbls:
-        split_intersection.append(intersection[edge_labels == lbl, :, :])
-    return split_intersection
+        slices.append(np.vstack(branches_pts))
+        branches.append(np.concatenate(
+            [i * np.ones(brpts.shape[0]) for i, brpts in enumerate(branches_pts)]))
+        branch_lengths.append(
+            [get_lines_length(lines) for lines in branch_intersections])
+    return slices, branches, branch_lengths

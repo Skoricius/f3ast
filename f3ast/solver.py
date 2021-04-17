@@ -78,10 +78,16 @@ class DwellSolver:
         ax, sc = plot_dwells(dwells)
         return ax, sc
 
+    def get_total_time(self):
+        if self.dwell_times_slices is not None:
+            t = np.sum([np.sum(dwls) for dwls in self.dwell_times_slices])
+            return timedelta(milliseconds=t)
+        return None
+
     def print_total_time(self):
         """Prints the total stream time"""
-        if self.dwell_times_slices is not None:
-            t0 = np.sum([np.sum(dwls) for dwls in self.dwell_times_slices])
-            print('Total stream time: ', timedelta(milliseconds=t0))
+        t = self.get_total_time()
+        if t is not None:
+            print('Total stream time: ', timedelta(milliseconds=t))
         else:
             print('Dwell times not calculated yet!')

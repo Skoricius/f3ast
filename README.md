@@ -41,12 +41,15 @@ For a full step-by-step example, see `BuildStructure.ipynb`.
 
 For acquiring calibration parameters, see `CalibrationAnalysis.ipynb`.
 
+# Comparison with MATLAB software
+* resistance scale is defined differently as MATLAB's `resistance_scale/single_pixel_width`
+
 
 ## TO DO
 * progressive slicing
+* filling in the STL (this should only be done in get_eqd function and should be relatively straightforward)
 * check the possible issue with slicing of the last and first node being connected when they are not supposed to
-* Change how you define the resistance in parallel in the thesis
-* Check that the resistance is calculated well by comparing with MATLAB (single pixel, branches etc.)
-* Check that you get similar deposition times as in MATLAB
 * Check that single sheet structures are working well
+* Change how you define the resistance in parallel in the thesis (resistance scale and layers)
 * Put package on PyPi: https://packaging.python.org/tutorials/packaging-projects/
+* DO I have the correct normalization in the resistance model (line 50 in resistance.py)
