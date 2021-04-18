@@ -88,6 +88,6 @@ class DwellSolver:
         """Prints the total stream time"""
         t = self.get_total_time()
         if t is not None:
-            print('Total stream time: ', timedelta(milliseconds=t))
+            print('Total stream time: ', t)
         else:
             print('Dwell times not calculated yet!')

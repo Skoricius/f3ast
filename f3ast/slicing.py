@@ -37,8 +37,19 @@ def get_line_eqd_pts(lines, pitch):
     return pts_unique
 
 
-def get_lines_length(lines):
-    return np.sum(la.norm(lines[:, 1, :] - lines[:, 0, :], axis=1))
+# def get_lines_length(lines):
+#     return np.sum(la.norm(lines[:, 1, :] - lines[:, 0, :], axis=1))
+
+def get_path_length(pts):
+    """Gets the length of path defined by moving through the sequence of points
+
+    Args:
+        pts ((n,m) array): A sequence of n m-dimensional points
+
+    Returns:
+        distance: Distance of the path moving between the points
+    """
+    return np.sum(la.norm(pts[1:, :] - pts[:-1, :], axis=1))
 
 
 def split_eqd(branch_intersections_slices, pitch):
@@ -54,6 +65,7 @@ def split_eqd(branch_intersections_slices, pitch):
         slices.append(np.vstack(branches_pts))
         branches.append(np.concatenate(
             [i * np.ones(brpts.shape[0]) for i, brpts in enumerate(branches_pts)]))
+        # defining the branch length can be a bit tricky. Here I use the total distance along a path in branches_pts, but this might not be absolutely correct for all structures
         branch_lengths.append(
-            [get_lines_length(lines) for lines in branch_intersections])
+            [get_path_length(pts) for pts in branches_pts])
     return slices, branches, branch_lengths

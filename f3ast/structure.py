@@ -11,6 +11,8 @@ import time
 
 class Structure(trimesh.Trimesh):
     def __init__(self, *args, file_path=None, pitch=3, fill=False, **kwargs) -> None:
+        if not 'face_colors' in kwargs:
+            kwargs['face_colors'] = (17, 103, 177)
         super().__init__(*args, **kwargs)
         self.pitch = pitch
         self.fill = fill
@@ -94,7 +96,7 @@ class Structure(trimesh.Trimesh):
             slices (list of (n,3) arrays)
         """
         return [np.hstack(
-            [sl, z * np.ones((sl.shape[0], 1))]) for sl, z in zip(self.slices, self.z_levels)]
+            [sl, z * np.ones((sl.shape[0], -1))]) for sl, z in zip(self.slices, self.z_levels)]
 
     def get_sliced_points(self):
         """Gets the sliced points in a matrix form.
@@ -109,6 +111,15 @@ class Structure(trimesh.Trimesh):
         points = self.get_sliced_points()
         ax = points3d(points, *args, **kwargs)
         return ax
+
+    def show(self):
+        # shows the model and adds the build plate
+        scene = self.scene()
+        # add the plane to the scene
+        length = np.max(self.extents[:2])
+        plane = trimesh.creation.box([length, length, 1])
+        scene.add_geometry(plane)
+        return scene.show()
 
     def generate_slices(self, branch_connectivity=True):
         print('Slicing...')
