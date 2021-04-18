@@ -48,8 +48,7 @@ For acquiring calibration parameters, see `CalibrationAnalysis.ipynb`.
 ## TO DO
 * progressive slicing
 * filling in the STL (this should only be done in get_eqd function and should be relatively straightforward)
-* check the possible issue with slicing of the last and first node being connected when they are not supposed to
-* Check that single sheet structures are working well
 * Change how you define the resistance in parallel in the thesis (resistance scale and layers)
 * Put package on PyPi: https://packaging.python.org/tutorials/packaging-projects/
 * DO I have the correct normalization in the resistance model (line 50 in resistance.py)
+* Check how the normalization is defined in thesis
