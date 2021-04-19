@@ -96,7 +96,7 @@ class Structure(trimesh.Trimesh):
             slices (list of (n,3) arrays)
         """
         return [np.hstack(
-            [sl, z * np.ones((sl.shape[0], -1))]) for sl, z in zip(self.slices, self.z_levels)]
+            [sl, z * np.ones((sl.shape[0], 1))]) for sl, z in zip(self.slices, self.z_levels)]
 
     def get_sliced_points(self):
         """Gets the sliced points in a matrix form.
