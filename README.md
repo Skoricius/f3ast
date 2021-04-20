@@ -8,7 +8,7 @@ pip install f3ast
 
 For now, install from requirements:
 ```
-pip install -r requirements
+pip install -r requirements.txt
 ```
 
 # Usage
