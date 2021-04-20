@@ -6,7 +6,7 @@ Eventually, this should be installable with
 pip install f3ast
 ```
 
-For now, install from requirements:
+For now, install from requirements. Navigate with terminal to the folder root directory and run:
 ```
 pip install -r requirements.txt
 ```
