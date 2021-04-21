@@ -6,6 +6,18 @@ import warnings
 
 
 class StreamBuilder:
+    """Builds the stream using the microscope settings.
+
+
+        Attributes:
+            dwells_slices (list of (n,3) arrays): Specifying per layer dwells (t, x, y)
+            addressable_pixels (list of two int): Microscope addressable pixels.
+            max_dwt (float): Maximum dwell time in ms.
+            cutoff_time (float): Minimum dwell time in ms. This is just for cutting of insignificant dwells to reduce file size.
+            screen_width (float): Screen width in nm.
+            scanning_order (str): Layer scanning order. Can be "serpentine" or "serial".
+    """
+
     def __init__(self, dwells_slices,
                  addressable_pixels=[65536, 56576],
                  max_dwt=5,
@@ -24,6 +36,15 @@ class StreamBuilder:
 
     @classmethod
     def from_model(cls, model, **kwargs):
+        """Creates the class from the model. Internally creates the DwellSolver and solves for dwells.
+
+        Args:
+            model (Model): Class defining the growth model.
+
+        Returns:
+            tuple:
+                stream_builder (StreamBuilder), dwell_solver (DwellSolver)
+        """
         # get the dwells
         dwell_solver = DwellSolver(model)
         dwell_solver.solve_dwells()
@@ -44,7 +65,7 @@ class StreamBuilder:
             centre (bool, optional): Wether to centre the stream on the screen. Defaults to False.
 
         Returns:
-            Stream
+            Stream:
         """
         dwells = self.get_stream_dwells()
         # if the dwells include the z direction, get rid of that
@@ -60,6 +81,11 @@ class StreamBuilder:
         return stream
 
     def get_stream_dwells(self):
+        """Gets the stream dwells by splitting and ordering them appropriately. Also converts x, y in pixels and gets rid of small dwells.
+
+        Returns:
+            (n,3) array: Array of dwells.
+        """
         # remove the dwells that are below the cutoff time
         dwells_slices = [ds[ds[:, 0] > self.cutoff_time]
                          for ds in self.dwells_slices]
@@ -89,7 +115,15 @@ class StreamBuilder:
 
     @staticmethod
     def split_dwells(dwells, max_dwt):
-        """Takes a matrix of dwells and splits them so that none of them exceeds the max dwell time. Returns a list of N_reps items which are all the split dwells."""
+        """Takes a matrix of dwells and splits them so that none of them exceeds the max dwell time. Returns a list of N_reps items which are all the split dwells.
+
+        Args:
+            dwells ((n,3) array): Array of dwells
+            max_dwt (float): Maximum allowed dwell time.
+
+        Returns:
+            list: List of equal (n,3) arrays that when summed correspond to the dwells.
+        """
         n_splits = int(np.ceil(np.max(dwells[:, 0]) / max_dwt))
         dwells_reduced = dwells.copy()
         dwells_reduced[:, 0] = dwells_reduced[:, 0] / n_splits

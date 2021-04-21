@@ -5,7 +5,7 @@ from .resistance import get_resistance
 
 
 class Model:
-    """Template class for the model classes.
+    """Template class for the model classes. Defines how we model the deposit.
     """
 
     def __init__(self, struct, get_parameters=True):
@@ -15,9 +15,17 @@ class Model:
 
     @property
     def struct(self):
+        """Structure to which the model applies.
+        """
         return self._struct
 
     def set_structure(self, struct, update_parameters=True):
+        """Sets the structure and updates any internal parameters (e.g. resistance)
+
+        Args:
+            struct (Structure): Structure to update.
+            update_parameters (bool, optional): Whether or not to update parameters.. Defaults to True.
+        """
         self._struct = struct
         if update_parameters:
             self.get_layer_parameters()
@@ -26,7 +34,7 @@ class Model:
         """Gets the threshold distance for which the points in a layer are considered neighbours.
 
         Returns:
-            distance (float)
+            distance (float):
         """
         return 0
 
@@ -37,7 +45,7 @@ class Model:
             layer (int,): Index of the layer
 
         Returns:
-            distance_matrix (coo_matrix): Sparse matrix (SciPy coo_matrix) of distances within the points that are withing the nb_threshold as defined by the class
+            coo_matrix: distance_matrix: Sparse matrix (SciPy coo_matrix) of distances within the points that are withing the nb_threshold as defined by the class
         """
         tree = KDTree(self.struct.slices[layer])
         threshold = self.get_nb_threshold()
@@ -50,7 +58,7 @@ class Model:
             distances (float, matrix)
 
         Returns:
-            proximity_value: Same type as distances.
+            type(distances): proximit value
         """
         return distances + 1
 
@@ -61,7 +69,7 @@ class Model:
             layer (int): Index of the layer
 
         Returns:
-            proximity_matrix (coo_matrix): Sparse matrix (SciPy coo_matrix) defining the parameters for the proximity calculation.
+            coo_matrix: proximity_matrix: Sparse matrix (SciPy coo_matrix) defining the parameters for the proximity calculation.
         """
         distance_matrix = self.get_distance_matrix(layer)
         # need to copy the matrix so that we can apply the proximity function to the data
@@ -75,6 +83,13 @@ class Model:
 
 
 class RRLModel(Model):
+    """Reaction rate limited model. Basic model only taking into account growth rate and sigma parameters.
+
+        Attributes:
+            gr (float): growth rate
+            sigma (float): deposit width
+    """
+
     def __init__(self, struct, gr, sigma, **kwargs):
         super().__init__(struct, **kwargs)
         self.gr = gr
@@ -103,6 +118,15 @@ class RRLModel(Model):
 
 
 class DDModel(Model):
+    """Desorption-dominated model taking into account the heating via the resistance model.
+
+        Attributes:
+            struct (Structure):
+            gr (float): growth rate
+            k (float): temperature scaling parameter
+            sigma (float): deposit width
+    """
+
     def __init__(self, struct, gr, k, sigma, resistance_scale=1000, single_pixel_width=50, **kwargs):
         self.gr = gr
         self.k = k
@@ -116,6 +140,7 @@ class DDModel(Model):
 
     @property
     def resistance(self):
+        """Resistance parameter."""
         if self._resistance is None:
             self.get_layer_parameters()
         return self._resistance
@@ -132,7 +157,7 @@ class DDModel(Model):
         return self.gr * np.exp(-self.k * resistance) * np.exp(-distances**2 / (2 * self.sigma**2))
 
     def get_proximity_matrix(self, layer):
-        """Returns the proximity matrix using the distance matrix"""
+        """Returns the proximity matrix using the distance matrix for the given layer."""
         distance_matrix = self.get_distance_matrix(layer)
         # each row of distance matrix has the resistance of the corresponding point
         res = self.resistance[layer][distance_matrix.row]
@@ -143,17 +168,27 @@ class DDModel(Model):
         return proximity_matrix
 
     def get_nb_threshold(self):
-        """How far are the points considered neighbours"""
+        """How far are the points considered neighbours."""
         return 3 * self.sigma
 
     @staticmethod
     def calibration_fit_function(t, gr, k):
-        """Function for fitting the calibration"""
+        """Function for fitting the calibration."""
         return 1 / k * np.log(k * gr * t + 1)
 
     @staticmethod
     def fit_calibration(dwell_times, lengths, gr0=0.1, k0=1):
-        """Fits the calibration and returns optimal parameters and the fit function."""
+        """Fits the calibration and returns optimal parameters and the fit function.
+
+        Args:
+            dwell_times (array): Array of measured dwell times.
+            lengths (array): Array of measured lengths.
+            gr0 (float, optional): Initial guess for GR. Defaults to 0.1.
+            k0 (float, optional): Initial guess for k. Defaults to 1.
+
+        Returns:
+            [type]: [description]
+        """
         fn = DDModel.calibration_fit_function
 
         popt, pcov = curve_fit(fn, dwell_times, lengths,

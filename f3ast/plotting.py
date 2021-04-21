@@ -5,6 +5,11 @@ import numpy.linalg as la
 
 
 def create_3d_axes():
+    """Creates 3D axes.
+
+    Returns:
+        axes: 3D axes.
+    """
     fig = plt.figure()
     ax = mplot3d.Axes3D(fig, auto_add_to_figure=False)
     fig.add_axes(ax)
@@ -12,6 +17,15 @@ def create_3d_axes():
 
 
 def points3d(verts, *args, ax=None, **kwargs):
+    """Plots the 3D points in a 3D scatter plot.
+
+    Args:
+        verts ((n,3) array): Points to plot
+        ax (axes, optional): Axes on which to plot. If None creates them. Defaults to None.
+
+    Returns:
+        tuple: axes, scatter_plot
+    """
     if ax is None:
         fig = plt.figure()
         ax = mplot3d.Axes3D(fig, auto_add_to_figure=False)
@@ -21,35 +35,43 @@ def points3d(verts, *args, ax=None, **kwargs):
 
 
 def plot_dwells(dwells):
+    """Plots the dwells as 3D points. Colours them by time.
+
+    Args:
+        dwells ((n,4) array): Dwells to plot.
+
+    Returns:
+        tuple: axes, scatter_plot
+    """
     ax, sc = points3d(dwells[:, 1:], c=dwells[:, 0], cmap='magma')
     plt.colorbar(sc, ax=ax, shrink=0.6, label='t [ms]')
     return ax, sc
 
 
 def points2d(verts, ax=None):
+    """Plots the 2D points in a 2D scatter plot.
+
+    Args:
+        verts ((n,2) array): Points to plot
+        ax (axes, optional): Axes on which to plot. If None creates them. Defaults to None.
+
+    Returns:
+        tuple: axes, scatter_plot
+    """
     if ax is None:
         fig, ax = plt.subplots()
     sc = ax.scatter(verts[:, 0], verts[:, 1])
     return ax, sc
 
 
-def orthogonal_vector(v):
-    """Return an arbitrary vector that is orthogonal to v"""
-    if v[1] != 0 or v[2] != 0:
-        c = (1, 0, 0)
-    else:
-        c = (0, 1, 0)
-    return np.cross(v, c)
-
-
 def set_axes_equal(ax):
-    '''Make axes of 3D plot have equal scale so that spheres appear as spheres,
+    """Make axes of 3D plot have equal scale so that spheres appear as spheres,
     cubes as cubes, etc..  This is one possible solution to Matplotlib's
     ax.set_aspect('equal') and ax.axis('equal') not working for 3D.
 
-    Input
-      ax: a matplotlib axis, e.g., as output from plt.gca().
-    '''
+    Args:
+        ax (axes):
+    """
 
     x_limits = ax.get_xlim3d()
     y_limits = ax.get_ylim3d()

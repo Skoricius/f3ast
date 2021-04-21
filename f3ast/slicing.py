@@ -22,6 +22,15 @@ def _numba_eqd_pts(start_nodes, conn_vecs, n_steps):
 
 
 def get_line_eqd_pts(lines, pitch):
+    """Gets the line points that are on a grid with spacing pitch.
+
+    Args:
+        lines ((n,2,2) array): Array of lines (start_node - end_node)
+        pitch (float): Distance on the grid.
+
+    Returns:
+        (n,2) array: Points out on the grid.
+    """
 
     start_nodes = np.ascontiguousarray(lines[:, 0, :])
     end_nodes = np.ascontiguousarray(lines[:, 1, :])
@@ -43,18 +52,26 @@ def get_line_eqd_pts(lines, pitch):
 def get_path_length(pts):
     """Gets the length of path defined by moving through the sequence of points
 
-    Args:
-        pts ((n,m) array): A sequence of n m-dimensional points
+        Args:
+            pts ((n,m) array): A sequence of n m-dimensional points
 
-    Returns:
-        distance: Distance of the path moving between the points
+        Returns:
+            (n,2) array: Distance of the path moving between the points
     """
     return np.sum(la.norm(pts[1:, :] - pts[:-1, :], axis=1))
 
 
 def split_eqd(branch_intersections_slices, pitch):
-    # split into equidistant points, keep track of connected components (branches)
-    # can parallelize with joblib
+    """Split into equidistant points, keep track of connected components (branches)
+    can parallelize with joblib.
+
+    Args:
+        branch_intersections_slices (list of lists of arrays): For each slice, for each branch, array of points in that branch.
+        pitch (float): Required spacing between the points.
+
+    Returns:
+        tuple: slices, branches, branch_lengths
+    """
     slices = []
     branches = []
     branch_lengths = []

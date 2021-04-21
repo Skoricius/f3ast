@@ -5,6 +5,7 @@ docs/f3ast*
 docs/examples*
 docs/README.*
 docs/_static/*
+docs/.deps
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

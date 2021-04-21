@@ -5,12 +5,35 @@ from ..stream import Stream, intertwine_dwells
 
 
 def get_spot_dwells(t, position, max_dwt=5):
+    """Gets a single spot dwell
+
+    Args:
+        t (float): Time in seconds for the spot dwell.
+        position ((2,) list, array): Position of the dwell.
+        max_dwt (float, optional): Maximum allowed dwell time in ms. Defaults to 5.
+
+    Returns:
+        (n,3) array: Dwells
+    """
     dwells_split = StreamBuilder.split_dwells(
         np.array([1000 * t, position[0], position[1]])[np.newaxis, :], max_dwt)
     return np.vstack(dwells_split)
 
 
 def get_spot_calibration(grid=[5, 3], start_time=1, end_time=15, shuffle=True, addressable_pixels=[65536, 56576], max_dwt=5):
+    """Gets the spot calibration stream
+
+    Args:
+        grid (list, optional): Grid size for distributing the structures. Defaults to [5, 3].
+        start_time (int, optional): Time in seconds of the smallest structure. Defaults to 1.
+        end_time (int, optional): Time in seconds of the largest structure. Defaults to 15.
+        shuffle (bool, optional): Whether to shuffle the structures randomly on a screen. Defaults to True.
+        addressable_pixels (list, optional): Addressable pixels on microscope screen. Defaults to [65536, 56576].
+        max_dwt (float, optional): Maximum allowed dwell time in ms. Defaults to 5.
+
+    Returns:
+        tuple: Stream, data
+    """
     n_structs = grid[0] * grid[1]
     times = np.linspace(start_time, end_time, n_structs)
     # randomly shuffle the times to get rid of transient effects
@@ -41,7 +64,11 @@ def get_spot_calibration(grid=[5, 3], start_time=1, end_time=15, shuffle=True, a
 
 
 def export_spot_calibration(file_path, **kwargs):
-    """Convinience function to immediately save the calibration stream. Takes all the keywords parameter of the get_spot_calibration"""
+    """Convinience function to immediately save the calibration stream. Takes all the keywords parameter of the get_spot_calibration
+
+    Args:
+        file_path (str): File to which to save.
+    """
     strm, data = get_spot_calibration(**kwargs)
     strm.print_time()
     strm.write(file_path)

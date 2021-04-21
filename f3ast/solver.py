@@ -8,12 +8,27 @@ from joblib import Parallel, delayed
 
 
 def get_distance_matrix(sl, threshold):
-    """Gets the sparse matrix containting distances between points i and j in slice sl that are under a threshold"""
+    """Gets the sparse matrix containting distances between points i and j in slice sl that are under a threshold.
+
+    Args:
+        sl ((n,2) array): Points in slice to which to get the distance matrix of.
+        threshold (float): Maximal distance which to consider.
+
+    Returns:
+        coo_matrix: Sparse distance matrix.
+    """
     tree = KDTree(sl)
     return tree.sparse_distance_matrix(tree, threshold, output_type='coo_matrix')
 
 
 class DwellSolver:
+    """Class which solves the proximity problem for dwell times.
+
+        Attributes:
+            model (Model): Model which to solve.
+            dwell_times_slices (list of arrays): Solutionto the proximity problem.
+    """
+
     def __init__(self, model):
         self.model = model
         self.dwell_times_slices = None
@@ -71,7 +86,14 @@ class DwellSolver:
         return np.vstack(self.get_dwells_slices())
 
     def show_solution(self, cutoff=None):
-        """Plots the solution colouring by dwells and displaying only the dwells above the cutoff."""
+        """Plots the solution colouring by dwells and displaying only the dwells above the cutoff.
+
+        Args:
+            cutoff (float, optional): Minimum dwell time to include. Defaults to None.
+
+        Returns:
+            tuple: axes, sc
+        """
         dwells = self.get_dwells_matrix()
         if cutoff is not None:
             dwells = dwells[dwells[:, 0] > cutoff, :]
@@ -79,6 +101,11 @@ class DwellSolver:
         return ax, sc
 
     def get_total_time(self):
+        """Gets the total solution time. Returns None if not solved.
+
+        Returns:
+            datetime.timedelta:
+        """
         if self.dwell_times_slices is not None:
             t = np.sum([np.sum(dwls) for dwls in self.dwell_times_slices])
             return timedelta(milliseconds=t)

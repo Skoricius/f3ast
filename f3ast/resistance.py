@@ -10,7 +10,7 @@ def get_resistance(struct, single_pixel_width=50.):
         single_pixel_width (float, optional): Width of a single pixel line. Defaults to 50.
 
     Returns:
-        resistance_slices: Resistance per point in the slice.
+        list of (n,) arrays: Resistance per point in the slice.
     """
 
     slices = struct.slices

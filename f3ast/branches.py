@@ -13,7 +13,7 @@ def split_intersection(intersection):
         intersection ((n,2,2)): array of intersection lines
 
     Returns:
-        (m,) list of (k,2,2) intersections: intersections grouped into components
+        (m,) list of (k,2,2) arrays: intersections grouped into components
     """
     # group the same points in the intersections
     grouped_rows = group_rows(intersection.reshape(-1, 2))
@@ -43,6 +43,15 @@ def split_intersection(intersection):
 
 
 def get_branch_connections(branch_intersections_slices, connection_distance):
+    """Gets the connections between branches organized in slices
+
+    Args:
+        branch_intersections_slices (list of lists of arrays): For each slice, for each branch, array of points in that branch.
+        connection_distance (float): Distance for which branches are considered connected.
+
+    Returns:
+        list of list of arrays:  For each slice, for each branch, which branches from layer below is it connected to.
+    """
     branch_connections = []
     # with Parallel(n_jobs=5, backend="threading") as parallel:
     for i, separated_pts in enumerate(branch_intersections_slices):
@@ -96,8 +105,8 @@ def is_branch_nb(tree, branch_pts, connection_distance):
         connection_distance (float): Distance for which the branches are considered neighours
 
     Returns:
-        is_nb (bool): True if branches are close
-        dist (float): Minimal distance between branches. np.inf if not neighbours.
+        bool: True if branches are close
+        float: Minimal distance between branches. np.inf if not neighbours.
     """
     tree1 = KDTree(branch_pts.reshape(-1, 2))
     distance_matrix = tree.sparse_distance_matrix(
@@ -109,6 +118,8 @@ def is_branch_nb(tree, branch_pts, connection_distance):
 
 
 def get_branch_connections_in_slice(br_pts, separated_pts_below, connection_distance):
+    """Auxiliary function to get the connections in a slice. This is for the purposes of parallelizing, but is not used atm.
+    """
 
     this_branch_connections = []
     tree = KDTree(br_pts.reshape(-1, 2))

@@ -10,7 +10,14 @@ CONVERSION_FACTOR = 10000
 
 
 def intertwine_dwells(dwells_list):
-    """Takes the list of matrices of dwells and intertwines them."""
+    """Takes the list of matrices of dwells and intertwines them.
+
+    Args:
+        dwells_list (list of (n,3 arrays)): Dwells to intertwine.
+
+    Returns:
+        (n,3) array: Array of intertwined dwells.
+    """
     n_list = len(dwells_list)
     size_list = [dwls.shape[0] for dwls in dwells_list]
     max_rows = np.max(size_list)
@@ -28,6 +35,14 @@ def intertwine_dwells(dwells_list):
 
 
 class Stream:
+    """Class representing the stream file.
+
+        Attributes:
+            dwells ((n,3) array): Specifying dwells (t, x, y) in (ms, px, px)
+            addressable_pixels (list of two int): Microscope addressable pixels.
+            max_dwt (float): Maximum dwell time in ms.
+    """
+
     def __init__(self, dwells, addressable_pixels=[65536, 56576], max_dwt=5):
         self.dwells = dwells
 
@@ -36,6 +51,14 @@ class Stream:
 
     @classmethod
     def from_file(cls, file_path, **kwargs):
+        """Imports the stream from .str file
+
+        Args:
+            file_path (str): Path to the .str file
+
+        Returns:
+            Stream: Stream class with dwells from the file.
+        """
         dwells = np.genfromtxt(file_path, delimiter=' ',
                                skip_header=3, usecols=range(3))
         # convert the dwells to ms
@@ -44,19 +67,33 @@ class Stream:
 
     @property
     def limits(self):
+        """Limits of the stream in x and y directions.
+
+        Returns:
+            (2, 2) array: Limits of the stream
+        """
         mnmx = np.zeros((2, 2))
         mnmx[:, 0] = np.min(self.dwells[:, 1:], axis=0)
         mnmx[:, 1] = np.max(self.dwells[:, 1:], axis=0)
         return mnmx
 
     def is_valid(self):
+        """Checks if the stream is valid (i.e. within the bounds).
+
+        Returns:
+            bool:
+        """
         limits = self.limits
         if np.any(limits[:, 0] < 0) or np.any(limits[:, 1] > self.addressable_pixels) or np.any(self.dwells[:, 0] > self.max_dwt):
             return False
         return True
 
     def recentre(self, position=None):
-        """Centres the stream."""
+        """Centres the stream.
+
+        Args:
+            position ((2,) array, optional): Position on which to centre. If None, centres to the centre of the screen. Defaults to None.
+        """
         stream_centre = (self.limits[:, 1] + self.limits[:, 0]) / 2
         screen_centre = np.array(self.addressable_pixels) / 2
         if position is None:
@@ -67,7 +104,12 @@ class Stream:
         self.dwells[:, 1:] += translation_vector[np.newaxis, :]
 
     def write(self, file_path, centre=True):
-        """Writes the stream to file_path"""
+        """Writes the stream to the file_path.
+
+        Args:
+            file_path (str): Path to the .str file to which to write.
+            centre (bool, optional): Whether to centre the stream before exporting. Defaults to True.
+        """
         # make sure the extension is .str
         file_path = os.path.splitext(file_path)[0] + '.str'
         if centre:
@@ -92,6 +134,8 @@ class Stream:
             f.write(dwls_string)
 
     def show_on_screen(self):
+        """Plots the stream as it would look on the microscope screen.
+        """
         ax, sc = points2d(self.dwells[:, 1:])
         ax.set_xlabel('x [px]')
         ax.set_ylabel('y [px]')
@@ -99,8 +143,13 @@ class Stream:
         ax.set_ylim([0, self.addressable_pixels[1]])
 
     def get_time(self):
+        """Gets the total stream time.
+
+        Returns:
+            datetime.timedelta:
+        """
         return timedelta(milliseconds=np.sum(self.dwells[:, 0]))
 
     def print_time(self):
-        """Prints the total stream time"""
+        """Prints the total stream time."""
         print('Total time: ', str(self.get_time()))

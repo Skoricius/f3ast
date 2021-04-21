@@ -62,6 +62,17 @@ def get_sigma_structures(model, sigma_list, width=75, length=800, angle=45):
 
 
 def get_straight_ramp(length, width, thickness, angle):
+    """Gets a straight ramp stl file.
+
+    Args:
+        length (float): Length of the ramp.
+        width (float): Width of the ramp.
+        thickness (float): Thickness of the ramp.
+        angle (float): Angle to substrate.
+
+    Returns:
+        Structure: The ramp with desired parameters.
+    """
     struct = Structure.from_file(CUBE_PATH)
     transf_matrix = np.eye(4)
     transf_matrix[3, 3] = 0  # don't translate

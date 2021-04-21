@@ -7,7 +7,15 @@ plt.ion()
 
 
 class ScaleDisplay(object):
-    """Class for displaying a stack of images. Scroll for going through the stack, double click for movie"""
+    """Class for selecting a scale. Last two clicks are stored in scale_markers.
+
+        Attributes:
+            fig:
+            ax:
+            img:
+            axim:
+            scale_markers:
+    """
 
     def __init__(self, fig, ax, img):
         self.fig = fig
@@ -23,6 +31,8 @@ class ScaleDisplay(object):
         self.scale_markers = []
 
     def onclick(self, event):
+        """Prints and saves the click location.
+        """
         x = event.xdata
         y = event.ydata
         print('{}, {}'.format(int(np.round(x)), int(np.round(y))))

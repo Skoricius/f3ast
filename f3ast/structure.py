@@ -11,7 +11,13 @@ import time
 
 
 class Structure(trimesh.Trimesh):
-    """Class defining the mesh structure. Inherits from trimesh.Trimesh class.
+    """Class defining the mesh structure. Inherits from trimesh.base.Trimesh class.
+
+
+        Attributes:
+            file_path (str): Path to the STL file.
+            pitch (float): Pitch for the slicing
+            fill (bool): If true attempts to fill in the STL file (not implemented yet)
     """
 
     def __init__(self, *args, file_path=None, pitch=3, fill=False, **kwargs) -> None:
