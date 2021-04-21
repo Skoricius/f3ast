@@ -54,3 +54,4 @@ For acquiring calibration parameters, see `CalibrationAnalysis.ipynb`.
 * DO I have the correct normalization in the resistance model (line 50 in resistance.py)
 * Check how the normalization is defined in thesis
 * https://readthedocs.org for documentation
+* remove duplication in testing/ and examples/
