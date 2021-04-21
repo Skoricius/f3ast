@@ -1,6 +1,10 @@
 *.pickle
 *.str
 *.csv
+docs/f3ast*
+docs/examples*
+docs/README.*
+docs/_static/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

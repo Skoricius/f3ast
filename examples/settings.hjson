@@ -1,0 +1,23 @@
+{
+    "structure":{
+        "pitch": 3 # in nm
+        "fill" : false
+    },
+
+    "stream_builder":{
+        "addressable_pixels":[65536, 56576] 
+        # in ms
+        "max_dwt":5 
+        # for faster exporting, get rid of all of the dwells which are below this cutoff time (in ms)
+        "cutoff_time" : 0.01,
+        # horisontal screen width in nm
+        "screen_width":6400 
+        # scanning order between slices (serpentine, or serial)
+        "scanning_order" : "serpentine" 
+    },
+
+    "dd_model":{
+        "resistance_scale":1000 
+        "single_pixel_width":50 # in nm
+    }
+}

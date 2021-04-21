@@ -4,6 +4,10 @@ from ..structure import Structure
 from scipy.spatial.transform import Rotation as R
 from ..stream_builder import StreamBuilder
 from ..stream import Stream
+import os
+
+dirname = os.path.dirname(__file__)
+CUBE_PATH = os.path.join(dirname, 'cube.stl')
 
 
 def get_sigma_structures(model, sigma_list, width=75, length=800, angle=45):
@@ -58,7 +62,7 @@ def get_sigma_structures(model, sigma_list, width=75, length=800, angle=45):
 
 
 def get_straight_ramp(length, width, thickness, angle):
-    struct = Structure.from_file('f3ast/calibration/cube.stl')
+    struct = Structure.from_file(CUBE_PATH)
     transf_matrix = np.eye(4)
     transf_matrix[3, 3] = 0  # don't translate
     transf_matrix[0, 0] = length

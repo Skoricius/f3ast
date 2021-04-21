@@ -45,6 +45,7 @@ For acquiring calibration parameters, see `CalibrationAnalysis.ipynb`.
 * resistance scale is defined differently as MATLAB's `resistance_scale/single_pixel_width`
 
 
+
 ## TO DO
 * progressive slicing
 * filling in the STL (this should only be done in get_eqd function and should be relatively straightforward)
@@ -52,3 +53,4 @@ For acquiring calibration parameters, see `CalibrationAnalysis.ipynb`.
 * Put package on PyPi: https://packaging.python.org/tutorials/packaging-projects/
 * DO I have the correct normalization in the resistance model (line 50 in resistance.py)
 * Check how the normalization is defined in thesis
+* https://readthedocs.org for documentation

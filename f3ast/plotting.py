@@ -4,19 +4,10 @@ import numpy as np
 import numpy.linalg as la
 
 
-def plot_mesh_mpl(msh, ax=None):
-    if ax is None:
-        fig = plt.figure()
-        ax = mplot3d.Axes3D(fig, auto_add_to_figure=False)
-        fig.add_axes(ax)
-
-    ax.add_collection3d(mplot3d.art3d.Poly3DCollection(msh.triangles))
-    bounds = msh.bounds
-
-    ax.set_xlim(bounds[0, 0], bounds[1, 0])
-    ax.set_ylim(bounds[0, 1], bounds[1, 1])
-    ax.set_zlim(bounds[0, 2], bounds[1, 2])
-    set_axes_equal(ax)
+def create_3d_axes():
+    fig = plt.figure()
+    ax = mplot3d.Axes3D(fig, auto_add_to_figure=False)
+    fig.add_axes(ax)
     return ax
 
 
