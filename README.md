@@ -55,4 +55,3 @@ For acquiring calibration parameters, see `CalibrationAnalysis.ipynb`.
 * Check how the normalization is defined in thesis
 * https://readthedocs.org for documentation
 * remove duplication in testing/ and examples/
-* finish documenting the functions
