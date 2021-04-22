@@ -44,8 +44,10 @@ def get_resistance(struct, single_pixel_width=50.):
             for c in br_conn:
                 branch_pts_below = separated_pts_below[c]
                 center_below = np.mean(branch_pts_below, axis=0)
+                # get the layer separation (in um)
                 layer_sep = np.sqrt(
-                    la.norm(center_curr - center_below)**2 + dz**2)
+                    la.norm(center_curr - center_below)**2 + dz**2) / 1000
+                # get the connection resistance, normalize by the single pixel width
                 connection_resistance = resistances_below[c] + \
                     single_pixel_width * layer_sep / \
                     (brlens[j] + single_pixel_width)

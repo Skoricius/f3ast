@@ -105,6 +105,16 @@ class Structure(trimesh.Trimesh):
             return False
         return True
 
+    def centre(self):
+        """Centres the structure to (0, 0)
+        """
+        self.rezero()
+        transf = np.zeros((4, 4)).astype(float)
+        transf[:3, :3] = np.eye(3)
+        transf[0, -1] = -self.centroid[0]
+        transf[1, -1] = -self.centroid[1]
+        self.apply_transform(transf)
+
     def rescale(self, scale):
         """Scales the mesh by the scale factor"""
         transf = np.eye(4)

@@ -127,12 +127,11 @@ class DDModel(Model):
             sigma (float): deposit width
     """
 
-    def __init__(self, struct, gr, k, sigma, resistance_scale=1000, single_pixel_width=50, **kwargs):
+    def __init__(self, struct, gr, k, sigma, single_pixel_width=50, **kwargs):
         self.gr = gr
         self.k = k
         self.sigma = sigma
 
-        self.resistance_scale = resistance_scale
         self.single_pixel_width = single_pixel_width
 
         self._resistance = None
@@ -148,10 +147,8 @@ class DDModel(Model):
     def get_layer_parameters(self):
         """Gets the resistance and stores it as an internal parameter
         """
-        resistance = get_resistance(
+        self._resistance = get_resistance(
             self.struct, single_pixel_width=self.single_pixel_width)
-        self._resistance = [
-            res / self.resistance_scale for res in resistance]
 
     def proximity_fun(self, distances, resistance):
         return self.gr * np.exp(-self.k * resistance) * np.exp(-distances**2 / (2 * self.sigma**2))
