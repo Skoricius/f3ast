@@ -6,9 +6,16 @@ Eventually, this should be installable with
 pip install f3ast
 ```
 
-For now, install from requirements. Navigate with terminal to the folder root directory and run:
+For now, install the cloned repository. Navigate with terminal to the folder root directory and run:
 ```
-pip install -r requirements.txt
+git clone git@github.com:Skoricius/f3ast.git
+pip install -e f3ast
+```
+
+## Build the documentation
+Make sure the project is installed. Navigate to `./docs` folder of the cloned directory. Run:
+```
+make html
 ```
 
 # Usage
