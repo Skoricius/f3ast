@@ -2,7 +2,7 @@
 *.str
 *.csv
 docs/f3ast*
-docs/examples*
+docs/examples.*.rst
 docs/README.*
 docs/_static/*
 docs/.deps
