@@ -35,7 +35,7 @@ $(STATICDIR)/examples/%.html: ../examples/%.ipynb .deps
 	python -c "import os; os.makedirs('_static/examples', exist_ok=True)"
 	$(NBCONVERT) nbconvert --to html --output $(abspath $@) $<
 
-examples.%.rst: $(STATICDIR)/examples/%.html templates/examples.template
+examples.%.rst: $(STATICDIR)/examples/%.html examples.template
 	$(PYTHON) -c "open('$@', 'w').write(open('examples.template').read().format(name='$(*F)', url='$<'))"
 
 f3ast.rst: .deps
