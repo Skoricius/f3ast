@@ -13,10 +13,18 @@ pip install -e f3ast
 ```
 
 ## Build the documentation
-Make sure the project is installed. Navigate to `./docs` folder of the cloned directory. Run:
+Make sure the project is installed. Navigate to `./docs` folder of the cloned directory. In Linux or with Git Bash (on Windows) run:
 ```
 make html
 ```
+
+If using Windows without Git Bash, first install `make`. Easiest is to open Powershell and install [chocolatey](https://chocolatey.org/install). Then run:
+```
+choco install make
+make html
+```
+
+Open `./docs/_build/html/index.html`.
 
 # Usage
 Microscope settings are defined in `settings.hjson` file and contain information about the microscope and basic slicing settings.
