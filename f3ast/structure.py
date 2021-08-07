@@ -228,6 +228,9 @@ class Structure(trimesh.Trimesh):
 
         # get the heights of slices
         minz, maxz = self.bounds[0, 2], self.bounds[1, 2]
+        # move a bit to avoid artifacts
+        minz += 1e-3
+        maxz -= 1e-3
         z_levels = np.arange(minz, maxz, slice_height)
 
         # define the slicing plane

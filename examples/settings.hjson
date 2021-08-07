@@ -17,7 +17,6 @@
     },
 
     "dd_model":{
-        "resistance_scale":1000 
         "single_pixel_width":50 # in nm
     }
 }
