@@ -9,8 +9,20 @@ pip install f3ast
 For now, install the cloned repository. Navigate with terminal to the folder root directory and run:
 ```
 git clone git@github.com:Skoricius/f3ast.git
-pip install -e f3ast
+pip install -e f3ast --user
 ```
+
+# Possible issues
+
+This library was tested with Python 3.8.5. Earlier versions of Python might not have all the libraries required to make this project work. To make sure you are using the correct version of Python without affecting your base environment, use conda environments:
+```
+conda create -n f3ast python=3.8.5
+conda activate f3ast
+```
+And then install the library in the newly created environment.
+
+On MACs, there might be an issue with numba threading. It has something to do with `tbb` library. If someone finds out a fix, please let me know. 
+A simple workaround is to comment out line 9 in `slicing.py` which might make the slicing slightly slower.
 
 ## Build the documentation
 Make sure the project is installed. Navigate to `./docs` folder of the cloned directory. In Linux or with Git Bash (on Windows) run:
@@ -58,6 +70,7 @@ For acquiring calibration parameters, see `CalibrationAnalysis.ipynb`.
 
 # Comparison with MATLAB software
 * resistance scale is defined differently as MATLAB's `resistance_scale/single_pixel_width`
+
 
 
 
