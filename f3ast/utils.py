@@ -1,8 +1,12 @@
 import hjson
-import numpy as np
 import pickle
 import os
 from glob import glob
+from warnings import warn
+from shutil import copy2
+from pathlib import Path
+
+# TODO: remove os and just use pathlib
 
 
 def load_settings(file_path='settings.hjson'):
@@ -14,6 +18,13 @@ def load_settings(file_path='settings.hjson'):
     Returns:
         dict: settings dictionary
     """
+    settings_path = Path(file_path)
+    if not settings_path.exists():
+        warn("Settings file not found. Creating a default one.")
+        default_settings_path = Path(
+            __file__).parent.resolve() / "default_settings.hjson"
+        copy2(default_settings_path, settings_path)
+
     with open(file_path, 'r') as f:
         settings = hjson.load(f)
     return settings
