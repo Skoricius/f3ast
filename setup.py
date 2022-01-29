@@ -11,7 +11,6 @@ if os.path.exists('README.md'):
 setup(
     name='f3ast',
     version='0.1.0',
-    #packages=find_packages(include=['f3ast']),
     packages = ['f3ast', 'f3ast.calibration'],
     description='FEBID 3D Algorithm for Stream File Generation (F3AST)',
     long_description=long_description,

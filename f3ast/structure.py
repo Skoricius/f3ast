@@ -138,7 +138,6 @@ class Structure(trimesh.Trimesh):
         transf_matrix[:3, :3] = r.as_matrix()
         self.apply_transform( transf_matrix )
         self.clear_slicing()
-        return
 
     def clear_slicing(self):
         """Clears the slicing of the structure.
