@@ -127,6 +127,7 @@ class Structure(trimesh.Trimesh):
     def rotate(self, rotation_axis, rotation_angle):
         """
         Rotates the mesh by a given angle around a specified axis.
+
         Args:
             rotation_axis: list or np.array
                 Specifies rotation axis [x, y, z] as a 3-vector.
