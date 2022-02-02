@@ -7,6 +7,10 @@ docs/README.*
 docs/_static/examples/*
 docs/.deps
 
+idea/
+.idea/
+.idea/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

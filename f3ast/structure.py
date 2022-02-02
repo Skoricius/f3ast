@@ -8,6 +8,7 @@ from .branches import split_intersection, get_branch_connections
 import numpy as np
 from trimesh.intersections import mesh_multiplane
 import time
+from scipy.spatial.transform import Rotation
 
 
 class Structure(trimesh.Trimesh):
@@ -121,6 +122,22 @@ class Structure(trimesh.Trimesh):
         transf[3, 3] = 0
         transf *= scale
         self.apply_transform(transf)
+        self.clear_slicing()
+
+    def rotate(self, rotation_axis, rotation_angle):
+        """
+        Rotates the mesh by a given angle around a specified axis.
+
+        Args:
+            rotation_axis: list or np.array
+                Specifies rotation axis [x, y, z] as a 3-vector.
+            rotation_angle: float
+                Rotation angle in degrees.
+        """
+        r = Rotation.from_rotvec( np.deg2rad( rotation_angle ) * np.array(rotation_axis) )
+        transf_matrix = np.eye( 4 )
+        transf_matrix[:3, :3] = r.as_matrix()
+        self.apply_transform( transf_matrix )
         self.clear_slicing()
 
     def clear_slicing(self):
