@@ -1,5 +1,8 @@
 # FEBID 3D Algorithm for Stream File generation (F3AST)
 
+
+[![Documentation Status](https://readthedocs.org/projects/f3ast/badge/?version=latest)](https://f3ast.readthedocs.io/en/latest/?badge=latest)
+
 ## Installation
 The package can be installed with pip:
 ```
@@ -12,7 +15,11 @@ git clone git@github.com:Skoricius/f3ast.git
 pip install -e f3ast --user
 ```
 
-# Possible issues
+## Documentation
+
+See [readthedocs](https://f3ast.readthedocs.io/en/latest/) for detailed documentation and examples.
+
+## Possible issues
 
 This library was tested with Python 3.8.5. Earlier versions of Python might not have all the libraries required to make this project work. To make sure you are using the correct version of Python without affecting your base environment, use conda environments:
 ```
@@ -24,7 +31,7 @@ And then install the library in the newly created environment.
 On MACs, there might be an issue with numba threading. It has something to do with `tbb` library. If someone finds out a fix, please let me know. 
 A simple workaround is to comment out line 9 in `slicing.py` which might make the slicing slightly slower.
 
-## Build the documentation
+## Building the documentation
 Make sure the project is installed. Also, install [pandoc](https://pandoc.org/installing.html) with `apt install pandoc`. Navigate to `./docs` folder of the cloned directory. In Linux or with Git Bash (on Windows) run:
 ```
 make html
