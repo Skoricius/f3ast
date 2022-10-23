@@ -2,9 +2,6 @@
 *.pickle
 *.str
 *.csv
-docs/f3ast*
-docs/examples.*.rst
-docs/README.*
 docs/_static/examples/*
 docs/.deps
 
