@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.optimize import curve_fit
-from scipy.spatial.kdtree import KDTree
+from scipy.spatial import KDTree
 from .resistance import get_resistance
 
 

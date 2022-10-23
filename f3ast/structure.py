@@ -134,10 +134,11 @@ class Structure(trimesh.Trimesh):
             rotation_angle: float
                 Rotation angle in degrees.
         """
-        r = Rotation.from_rotvec( np.deg2rad( rotation_angle ) * np.array(rotation_axis) )
-        transf_matrix = np.eye( 4 )
+        r = Rotation.from_rotvec(np.deg2rad(
+            rotation_angle) * np.array(rotation_axis))
+        transf_matrix = np.eye(4)
         transf_matrix[:3, :3] = r.as_matrix()
-        self.apply_transform( transf_matrix )
+        self.apply_transform(transf_matrix)
         self.clear_slicing()
 
     def clear_slicing(self):
@@ -209,7 +210,10 @@ class Structure(trimesh.Trimesh):
         """Gets the silces and all the corresponding information.
 
         Args:
-            branch_connectivity (bool, optional): If false, does not calculate the connectivity of branches required for resistance calculations. This can be useful to save time if resistance is not going to be calculated. Defaults to True.
+            branch_connectivity (bool, optional): If false, does not calculate
+            the connectivity of branches required for resistance calculations.
+            This can be useful to save time if resistance is not going to be calculated.
+            Defaults to True.
         """
         print('Slicing...')
         intersection_lines, self._z_levels = self.get_intersection_lines()
