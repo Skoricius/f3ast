@@ -25,7 +25,7 @@ On MACs, there might be an issue with numba threading. It has something to do wi
 A simple workaround is to comment out line 9 in `slicing.py` which might make the slicing slightly slower.
 
 ## Build the documentation
-Make sure the project is installed. Navigate to `./docs` folder of the cloned directory. In Linux or with Git Bash (on Windows) run:
+Make sure the project is installed. Also, install [pandoc](https://pandoc.org/installing.html) with `apt install pandoc`. Navigate to `./docs` folder of the cloned directory. In Linux or with Git Bash (on Windows) run:
 ```
 make html
 ```
@@ -68,18 +68,9 @@ For a full step-by-step example, see `BuildStructure.ipynb`.
 
 For acquiring calibration parameters, see `CalibrationAnalysis.ipynb`.
 
-# Comparison with MATLAB software
-* resistance scale is defined differently as MATLAB's `resistance_scale/single_pixel_width`
-
-
-
-
 ## TO DO
 * progressive slicing
 * filling in the STL (this should only be done in get_eqd function and should be relatively straightforward)
-* Change how you define the resistance in parallel in the thesis (resistance scale and layers)
 * Put package on PyPi: https://packaging.python.org/tutorials/packaging-projects/
-* DO I have the correct normalization in the resistance model (line 50 in resistance.py)
-* Check how the normalization is defined in thesis
 * https://readthedocs.org for documentation
 * remove duplication in testing/ and examples/
