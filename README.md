@@ -73,4 +73,3 @@ For acquiring calibration parameters, see `CalibrationAnalysis.ipynb`.
 * filling in the STL (this should only be done in get_eqd function and should be relatively straightforward)
 * Put package on PyPi: https://packaging.python.org/tutorials/packaging-projects/
 * https://readthedocs.org for documentation
-* remove duplication in testing/ and examples/
