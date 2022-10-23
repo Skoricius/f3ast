@@ -10,10 +10,11 @@ if os.path.exists('README.md'):
 
 setup(
     name='f3ast',
-    version='0.1.0',
-    packages = ['f3ast', 'f3ast.calibration'],
+    version='1.0.0',
+    packages=['f3ast', 'f3ast.calibration'],
     description='FEBID 3D Algorithm for Stream File Generation (F3AST)',
     long_description=long_description,
+    long_description_content_type='text/markdown',
     author='Luka Skoric',
     license='GNU GENERAL PUBLIC LICENSE',
     install_requires=[
@@ -27,6 +28,7 @@ setup(
         'scikit-image>=0.18.1',
         'scipy>=1.6.2',
         'tbb>=2021.2.0',
-        'pyglet>=1.5.16'
+        'pyglet>=1.5.16',
+        'pytest>=7.1.3',
     ]
 )

@@ -1,12 +1,12 @@
 # FEBID 3D Algorithm for Stream File generation (F3AST)
 
 ## Installation
-Eventually, this should be installable with
+The package can be installed with pip:
 ```
 pip install f3ast
 ```
 
-For now, install the cloned repository. Navigate with terminal to the folder root directory and run:
+To install the most up-to-date version and get the example notebooks, clone the repository from github:
 ```
 git clone git@github.com:Skoricius/f3ast.git
 pip install -e f3ast --user
@@ -71,6 +71,4 @@ For acquiring calibration parameters, see `examples/calibration.ipynb`.
 ## TO DO
 * progressive slicing
 * filling in the STL (this should only be done in get_eqd function and should be relatively straightforward)
-* Put package on PyPi: https://packaging.python.org/tutorials/packaging-projects/
-* https://readthedocs.org for documentation
 * improved testing and CI

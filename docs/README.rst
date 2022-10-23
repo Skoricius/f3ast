@@ -4,14 +4,14 @@ FEBID 3D Algorithm for Stream File generation (F3AST)
 Installation
 ------------
 
-Eventually, this should be installable with
+The package can be installed with pip:
 
 ::
 
    pip install f3ast
 
-For now, install the cloned repository. Navigate with terminal to the
-folder root directory and run:
+To install the most up-to-date version and get the example notebooks,
+clone the repository from github:
 
 ::
 
@@ -41,8 +41,10 @@ which might make the slicing slightly slower.
 Build the documentation
 -----------------------
 
-Make sure the project is installed. Navigate to ``./docs`` folder of the
-cloned directory. In Linux or with Git Bash (on Windows) run:
+Make sure the project is installed. Also, install
+`pandoc <https://pandoc.org/installing.html>`__ with
+``apt install pandoc``. Navigate to ``./docs`` folder of the cloned
+directory. In Linux or with Git Bash (on Windows) run:
 
 ::
 
@@ -89,15 +91,10 @@ deposit model we are using, and build the stream.
    strm.write(save_path)
    save_build(save_path, dwell_solver, stream_builder)
 
-For a full step-by-step example, see ``BuildStructure.ipynb``.
+For a full step-by-step example, see ``examples/building.ipynb``.
 
-For acquiring calibration parameters, see ``CalibrationAnalysis.ipynb``.
-
-Comparison with MATLAB software
-===============================
-
--  resistance scale is defined differently as MATLAB's
-   ``resistance_scale/single_pixel_width``
+For acquiring calibration parameters, see
+``examples/calibration.ipynb``.
 
 TO DO
 -----
@@ -105,13 +102,4 @@ TO DO
 -  progressive slicing
 -  filling in the STL (this should only be done in get_eqd function and
    should be relatively straightforward)
--  Change how you define the resistance in parallel in the thesis
-   (resistance scale and layers)
--  Put package on PyPi:
-   `https://packaging.python.org/tutorials/packaging-projects/ <https://packaging.python.org/tutorials/packaging-projects/>`__
--  DO I have the correct normalization in the resistance model (line 50
-   in resistance.py)
--  Check how the normalization is defined in thesis
--  `https://readthedocs.org <https://readthedocs.org>`__ for
-   documentation
--  remove duplication in testing/ and examples/
+-  improved testing and CI
