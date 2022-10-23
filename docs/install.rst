@@ -10,6 +10,7 @@ Eventually, this should be installable with
 
 For now, install in editable (developer) mode by navigating to the folder root directory and running:
 .. sourcecode::
+
     pip install -e . --user
 
 For now, install from requirements. Navigate with terminal to the folder root directory and run:
