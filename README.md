@@ -64,12 +64,13 @@ strm.write(save_path)
 save_build(save_path, dwell_solver, stream_builder)
 ```
 
-For a full step-by-step example, see `BuildStructure.ipynb`.
+For a full step-by-step example, see `examples/building.ipynb`.
 
-For acquiring calibration parameters, see `CalibrationAnalysis.ipynb`.
+For acquiring calibration parameters, see `examples/calibration.ipynb`.
 
 ## TO DO
 * progressive slicing
 * filling in the STL (this should only be done in get_eqd function and should be relatively straightforward)
 * Put package on PyPi: https://packaging.python.org/tutorials/packaging-projects/
 * https://readthedocs.org for documentation
+* improved testing and CI
