@@ -1,6 +1,8 @@
 FEBID 3D Algorithm for Stream File generation (F3AST)
 =====================================================
 
+|Documentation Status|
+
 Installation
 ------------
 
@@ -18,8 +20,14 @@ clone the repository from github:
    git clone git@github.com:Skoricius/f3ast.git
    pip install -e f3ast --user
 
+Documentation
+-------------
+
+See `readthedocs <https://f3ast.readthedocs.io/en/latest/>`__ for
+detailed documentation and examples.
+
 Possible issues
-===============
+---------------
 
 This library was tested with Python 3.8.5. Earlier versions of Python
 might not have all the libraries required to make this project work. To
@@ -38,8 +46,8 @@ to do with ``tbb`` library. If someone finds out a fix, please let me
 know. A simple workaround is to comment out line 9 in ``slicing.py``
 which might make the slicing slightly slower.
 
-Build the documentation
------------------------
+Building the documentation
+--------------------------
 
 Make sure the project is installed. Also, install
 `pandoc <https://pandoc.org/installing.html>`__ with
@@ -103,3 +111,6 @@ TO DO
 -  filling in the STL (this should only be done in get_eqd function and
    should be relatively straightforward)
 -  improved testing and CI
+
+.. |Documentation Status| image:: https://readthedocs.org/projects/f3ast/badge/?version=latest
+   :target: https://f3ast.readthedocs.io/en/latest/?badge=latest
