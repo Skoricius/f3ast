@@ -3,7 +3,7 @@
 
 [![Documentation Status](https://readthedocs.org/projects/f3ast/badge/?version=latest)](https://f3ast.readthedocs.io/en/latest/?badge=latest)
 
-This software is the result of work published in:
+If you use f3ast in any work or publication, we kindly ask you to cite:
 
 [Skoric L, Sanz-Hernández D, Meng F, Donnelly C, Merino-Aceituno S, Fernández-Pacheco A. Layer-by-Layer Growth of Complex-Shaped Three-Dimensional Nanostructures with Focused Electron Beams. Nano Lett. 2020 Jan 8;20(1):184–91.](https://pubs.acs.org/doi/10.1021/acs.nanolett.9b03565)
 
