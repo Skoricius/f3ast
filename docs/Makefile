@@ -13,16 +13,12 @@ STATICDIR     = _static
 
 example_notebooks := $(wildcard ../examples/*.ipynb)
 example_names = $(foreach path, $(example_notebooks), $(basename $(notdir $(path))))
-example_htmls = $(foreach name, $(example_names), $(STATICDIR)/examples/$(name).html)
-example_rsts = $(foreach name, $(example_names), examples.$(name).rst)
+example_nbs = $(foreach name, $(example_names), examples/$(name).ipynb)
 
-html: conf.py index.rst install.rst examples.rst README.rst f3ast.rst $(example_rsts) $(example_htmls) .deps
+html: conf.py index.rst install.rst examples.rst README.rst f3ast.rst $(example_nbs) .deps
 	@$(SPHINXBUILD) -M html "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 	touch "$(BUILDDIR)/html/.nojekyll"
-	# echo "trimsh.org" > "$(BUILDDIR)/html/CNAME"
-	mv "$(BUILDDIR)/html/_static/examples" "$(BUILDDIR)/html/examples" || true
-	mv "$(BUILDDIR)/html/_static/images" "$(BUILDDIR)/html/images" || true
-	# cp "$(STATICDIR)/favicon.ico" "$(BUILDDIR)/html/favicon.ico" || true
+	rm -rvf "$(BUILDDIR)/html/_static/examples/*"
 
 .deps: requirements.txt
 	$(PIP) install -r requirements.txt
@@ -35,8 +31,9 @@ $(STATICDIR)/examples/%.html: ../examples/%.ipynb .deps
 	python -c "import os; os.makedirs('_static/examples', exist_ok=True)"
 	$(NBCONVERT) nbconvert --to html --output $(abspath $@) $<
 
-examples.%.rst: $(STATICDIR)/examples/%.html examples.template
-	$(PYTHON) -c "open('$@', 'w').write(open('examples.template').read().format(name='$(*F)', url='$<'))"
+examples/%.ipynb: ../examples/%.ipynb .deps
+	python -c "import os; os.makedirs('./examples', exist_ok=True)"
+	cp $< $(abspath $@)
 
 f3ast.rst: .deps
 	$(SPHINXGEN) -eTf -t "$(TEMPLATESDIR)" -o "$(SOURCEDIR)" ../f3ast
