@@ -10,7 +10,7 @@ if os.path.exists('README.md'):
 
 setup(
     name='f3ast',
-    version='1.0.1',
+    version='1.0.2',
     packages=['f3ast', 'f3ast.calibration'],
     description='FEBID 3D Algorithm for Stream File Generation (F3AST)',
     long_description=long_description,
@@ -30,5 +30,6 @@ setup(
         'tbb>=2021.2.0',
         'pyglet>=1.5.16',
         'pytest>=7.1.3',
+		'pandas',
     ]
 )

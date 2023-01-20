@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
 import numpy as np
-import numpy.linalg as la
+#import numpy.linalg as la
 
 
 def create_3d_axes():
