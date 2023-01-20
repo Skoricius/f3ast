@@ -5,25 +5,28 @@ from scipy.spatial.transform import Rotation as R
 from ..stream_builder import StreamBuilder
 from ..stream import Stream
 import os
-import trimesh
+
+from trimesh.creation import box
+from trimesh.exchange.export import export_mesh
 
 dirname = os.path.dirname(__file__)
 CUBE_PATH = os.path.join(dirname, 'cube.stl')
 
 
-def get_sigma_structures(model, sigma_list, width=75, length=800, angle=45):
+def get_sigma_structures(model, sigma_list, settings, width=75, length=800, angle=45):
     """Gets the structures for sigma calibration and returns a single stream file
 
     Args:
         model : Deposit model
         sigma_list (list): List of sigma values to try
+		settings: export settings
         width (float, optional): Width of the structures. Defaults to 75.
         length (float, optional): Length of the structures. Defaults to 800.
         angle (float, optional): Angle to xy plane of the structures. Defaults to 45.
     """
     
-	#this command seems dangerous as it may overwrite settings that the user defined in the notebook!
-	#settings = load_settings()
+    #this command seems dangerous as it may overwrite settings that the user defined in the notebook!
+    #settings = load_settings()
 
     # get the straight ramp of minimal thickness
     struct = get_straight_ramp(length, width, 0.1, angle)
@@ -76,7 +79,13 @@ def get_straight_ramp(length, width, thickness, angle):
     Returns:
         Structure: The ramp with desired parameters.
     """
-    struct = Structure.from_file(file_path=CUBE_PATH)
+    
+    try:
+        struct = Structure.from_file(file_path=CUBE_PATH)
+    except:
+        export_mesh(box((1,1,1)), CUBE_PATH, file_type='stl')
+        struct = Structure.from_file(file_path=CUBE_PATH)
+        
     transf_matrix = np.eye(4)
     transf_matrix[3, 3] = 0  # don't translate
     transf_matrix[0, 0] = length
