@@ -145,8 +145,7 @@ class DDModel(Model):
         return self._resistance
 
     def get_layer_parameters(self):
-        """Gets the resistance and stores it as an internal parameter
-        """
+        """Gets the resistance and stores it as an internal parameter."""
         self._resistance = get_resistance(
             self.struct, single_pixel_width=self.single_pixel_width)
 
@@ -175,7 +174,8 @@ class DDModel(Model):
 
     @staticmethod
     def fit_calibration(dwell_times, lengths, gr0=0.1, k0=1):
-        """Fits the calibration and returns optimal parameters and the fit function.
+        """
+		Fits the calibration and returns optimal parameters and the fit function.
 
         Args:
             dwell_times (array): Array of measured dwell times.
@@ -193,3 +193,5 @@ class DDModel(Model):
         print('GR: ', popt[0])
         print('k: ', popt[1])
         return fn, popt, pcov
+
+

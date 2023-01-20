@@ -9,6 +9,7 @@ import numpy as np
 from trimesh.intersections import mesh_multiplane
 import time
 from scipy.spatial.transform import Rotation
+import matplotlib.pyplot as plt
 
 
 class Structure(trimesh.Trimesh):
@@ -140,6 +141,26 @@ class Structure(trimesh.Trimesh):
         transf_matrix[:3, :3] = r.as_matrix()
         self.apply_transform(transf_matrix)
         self.clear_slicing()
+        
+    def mirror(self, mirror_plane='x'):
+        """
+        Mirrors the structure at plane x, y, or z.
+        
+        Args:
+            mirror_plane: str 
+                Specifies mirror plane as 'x', 'y' or 'z'.
+        """
+        transf_matrix = np.eye(4)
+        if   mirror_plane == 'x':
+            transf_matrix[0,0] = -1
+        elif mirror_plane == 'y':
+            transf_matrix[1,1] = -1
+        elif mirror_plane == 'z':
+            transf_matrix[2,2] = -1
+        else:
+            print("Mirror plane needs to be given as x, y, or z.\n No transformation applied.")
+        self.apply_transform(transf_matrix)
+        self.clear_slicing()
 
     def clear_slicing(self):
         """Clears the slicing of the structure.
@@ -193,7 +214,8 @@ class Structure(trimesh.Trimesh):
             axes: Matplotlib axes.
         """
         points = self.get_sliced_points()
-        ax = points3d(points, *args, **kwargs)
+        ax, sc = points3d(points, *args, **kwargs)
+        plt.colorbar(sc, shrink=0.8)
         return ax
 
     def show(self):
