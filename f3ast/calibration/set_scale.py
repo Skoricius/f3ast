@@ -43,11 +43,17 @@ class ScaleDisplay(object):
             self.scale_markers = [x]
 
 
-def select_scale(img, scale_boundaries=None):
-    """Creates axes and plots the image for selecting the scale"""
+def select_scale(img, scale_boundaries=(0.6, 0.93)):
+    """
+	Creates axes and plots the image for selecting the scale.
+	
+	Args:
+	scale_boundaries=tuple(fx, fy) 
+	Defines image region where scale bar is visible, 
+	with (fx, fy) defining the upper left corner of the 
+	scale bar region as fraction of the SEM image size.
+	"""
     fig, ax = plt.subplots(1, 1, figsize=[10, 4])
-    if scale_boundaries is None:
-        scale_boundaries = [int(img.shape[0] * 0.93), int(img.shape[1] * 0.6)]
-    img1 = img[scale_boundaries[0]:, scale_boundaries[1]:]
+    img1 = img[int(img.shape[0] * scale_boundaries[1]):, int(img.shape[1] * scale_boundaries[0]):]
     tracker = ScaleDisplay(fig, ax, img1)
     return tracker

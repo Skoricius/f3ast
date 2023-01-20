@@ -18,17 +18,17 @@ def read_image(file_path):
     return rgb2gray(io.imread(file_path))
 
 
-def remove_bottom_bar(img, bottom_factor=0.07):
+def remove_bottom_bar(img, bottom_factor=0.93):
     """Cuts off the bottom of the image
 
     Args:
         img (array): Image in array.
-        bottom_factor (float, optional): What percentage to cut off. Defaults to 0.07.
+        bottom_factor (float, optional): What top percentage to keep. Defaults to 0.93
 
     Returns:
         array: Cut image.
     """
-    return img[:int((1 - bottom_factor) * img.shape[0]), :]
+    return img[:int(bottom_factor * img.shape[0]), :]
 
 
 def threshold_image(img, thresh=None, sigma=2):
@@ -66,11 +66,12 @@ def get_labelled_image(img_thresh):
 
 
 def filter_small_labels(label_image, min_struct_size=300):
-    """Removes the labels which are of very small areas.
+    """
+	Removes the labels which are of very small areas.
 
     Args:
         label_image (array): labelled image
-        min_struct_size (float, optional): Minimum size. Defaults to 300.
+        min_struct_size (float, optional): Minimum length to consider, in pixels. Defaults to 300.
 
     Returns:
         list: List of valid labels.
@@ -78,8 +79,6 @@ def filter_small_labels(label_image, min_struct_size=300):
     labels = np.unique(label_image.flatten())
     labels = labels[labels != 0]
 
-    # get rid of small labels
-    min_struct_size = 300
     to_remove = []
     for l in labels:
         label_size = np.nonzero(label_image.flatten() == l)[0].size
