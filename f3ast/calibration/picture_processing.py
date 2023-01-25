@@ -15,7 +15,10 @@ def read_image(file_path):
     Returns:
         array: Grayscaled image.
     """
-    return rgb2gray(io.imread(file_path))
+    image = io.imread(file_path)
+    if len( np.shape( image ) ) == 3:
+        image = rgb2gray(image)
+    return image
 
 
 def remove_bottom_bar(img, bottom_factor=0.93):
