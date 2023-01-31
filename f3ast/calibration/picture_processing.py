@@ -69,8 +69,7 @@ def get_labelled_image(img_thresh):
 
 
 def filter_small_labels(label_image, min_struct_size=300):
-    """
-	Removes the labels which are of very small areas.
+    """Removes the labels which are of very small areas.
 
     Args:
         label_image (array): labelled image
