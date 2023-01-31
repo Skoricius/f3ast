@@ -24,9 +24,6 @@ def get_sigma_structures(model, sigma_list, settings, width=75, length=800, angl
         length (float, optional): Length of the structures. Defaults to 800.
         angle (float, optional): Angle to xy plane of the structures. Defaults to 45.
     """
-    
-    #this command seems dangerous as it may overwrite settings that the user defined in the notebook!
-    #settings = load_settings()
 
     # get the straight ramp of minimal thickness
     struct = get_straight_ramp(length, width, 0.1, angle)
