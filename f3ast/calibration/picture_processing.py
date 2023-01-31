@@ -16,7 +16,7 @@ def read_image(file_path):
         array: Grayscaled image.
     """
     image = io.imread(file_path)
-    if len( np.shape( image ) ) == 3:
+    if len(np.shape(image)) == 3:
         image = rgb2gray(image)
     return image
 
