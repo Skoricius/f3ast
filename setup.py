@@ -30,6 +30,6 @@ setup(
         'tbb>=2021.2.0',
         'pyglet>=1.5.16',
         'pytest>=7.1.3',
-		'pandas',
+		'pandas>=1.5.3',
     ]
 )
