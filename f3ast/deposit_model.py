@@ -210,8 +210,6 @@ class HeightCorrectionModel(RRLModel):
         GR: growth rate in um/s
         sigma: in nm, deposit width
         doubling_length: in nm, length over which deposition time doubles
-    Returns:
-        stream_builder, dwell_solver
     """
 
     def __init__(self, struct, gr, sigma, doubling_length=500., ** kwargs):
