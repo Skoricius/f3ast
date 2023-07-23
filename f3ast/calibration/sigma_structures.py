@@ -1,26 +1,32 @@
-from f3ast.utils import load_settings
-import numpy as np
-from ..structure import Structure
-from scipy.spatial.transform import Rotation as R
-from ..stream_builder import StreamBuilder
-from ..stream import Stream
 import os
+
+import numpy as np
+from scipy.spatial.transform import Rotation as R
+from trimesh.creation import box
+from trimesh.exchange.export import export_mesh
+
+from ..stream import Stream
+from ..stream_builder import StreamBuilder
+from ..structure import Structure
 
 dirname = os.path.dirname(__file__)
 CUBE_PATH = os.path.join(dirname, 'cube.stl')
 
 
-def get_sigma_structures(model, sigma_list, width=75, length=800, angle=45):
-    """Gets the structures for sigma calibration and returns a single stream file
+def get_sigma_structures(
+        model, sigma_list, settings, width=75, length=800, angle=45):
+    """Gets the structures for sigma calibration and returns them in a
+    list of stream objects together with the stream for 1px structure.
 
     Args:
         model : Deposit model
         sigma_list (list): List of sigma values to try
+                settings: export settings
         width (float, optional): Width of the structures. Defaults to 75.
         length (float, optional): Length of the structures. Defaults to 800.
-        angle (float, optional): Angle to xy plane of the structures. Defaults to 45.
+        angle (float, optional): Angle to xy plane of the structures.
+        Defaults to 45.
     """
-    settings = load_settings()
 
     # get the straight ramp of minimal thickness
     struct = get_straight_ramp(length, width, 0.1, angle)
@@ -41,10 +47,33 @@ def get_sigma_structures(model, sigma_list, width=75, length=800, angle=45):
         model, **settings['stream_builder'])
     strm_1px = stream_builder.get_stream()
 
+    return sigma_strm_list, strm_1px
+
+
+def get_combined_sigma_structures(
+        model, sigma_list, settings, width=75, length=800, angle=45):
+    """Gets the structures for sigma calibration and returns a single
+    stream file
+
+    Args:
+        model : Deposit model
+        sigma_list (list): List of sigma values to try
+                settings: export settings
+        width (float, optional): Width of the structures. Defaults to 75.
+        length (float, optional): Length of the structures. Defaults to 800.
+        angle (float, optional): Angle to xy plane of the structures.
+        Defaults to 45.
+    """
+    sigma_strm_list, strm_1px = get_sigma_structures(
+        model, sigma_list, settings, width=width, length=length, angle=angle)
+
     # arange on a screen
     addressable_pixels = settings['stream_builder']['addressable_pixels']
     y_positions = np.linspace(
-        0.1 * addressable_pixels[1], 0.9 * addressable_pixels[1], len(sigma_list))
+        0.1 * addressable_pixels[1],
+        0.9 * addressable_pixels[1],
+        len(sigma_strm_list)
+    )
     positions_list = [(addressable_pixels[0] / 2, y) for y in y_positions]
     for strm, pos in zip(sigma_strm_list, positions_list):
         strm.recentre(position=pos)
@@ -73,7 +102,13 @@ def get_straight_ramp(length, width, thickness, angle):
     Returns:
         Structure: The ramp with desired parameters.
     """
-    struct = Structure.from_file(CUBE_PATH)
+
+    try:
+        struct = Structure.from_file(file_path=CUBE_PATH)
+    except:
+        export_mesh(box((1, 1, 1)), CUBE_PATH, file_type='stl')
+        struct = Structure.from_file(file_path=CUBE_PATH)
+
     transf_matrix = np.eye(4)
     transf_matrix[3, 3] = 0  # don't translate
     transf_matrix[0, 0] = length
