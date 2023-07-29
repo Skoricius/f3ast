@@ -174,8 +174,8 @@ class DDModel(Model):
 
     @staticmethod
     def fit_calibration(dwell_times, lengths, gr0=0.1, k0=1):
-        """
-		Fits the calibration and returns optimal parameters and the fit function.
+        """Fits the calibration and returns optimal parameters and the
+        fit function.
 
         Args:
             dwell_times (array): Array of measured dwell times.
@@ -195,3 +195,29 @@ class DDModel(Model):
         return fn, popt, pcov
 
 
+class HeightCorrectionModel(RRLModel):
+    """Returns stream model with exponential correction over structure height.
+    Might be useful for stl files with disconnected components, which leads to
+    a breakdown of the DDModel.
+
+    Takes initial growth rate/time from GR, and doubles dwell time over the
+    length scale of doubling_length.
+    Doubling_length needs to be determined experimentally, e.g., from pitch of
+    periodic structures over heights.
+
+    Attributes:
+        struct: structure
+        GR: growth rate in um/s
+        sigma: in nm, deposit width
+        doubling_length: in nm, length over which deposition time doubles
+    """
+
+    def __init__(self, struct, gr, sigma, doubling_length=500., ** kwargs):
+        super().__init__(struct, gr, sigma, **kwargs)
+        self.doubling_length = doubling_length
+
+    def get_proximity_matrix(self, layer, *args):
+        proximity_matrix = super().get_proximity_matrix(layer, *args)
+        layer_height = self.struct.z_levels[layer]
+        proximity_matrix /= np.power(2., layer_height/self.doubling_length)
+        return proximity_matrix

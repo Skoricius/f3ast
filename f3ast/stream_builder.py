@@ -4,6 +4,7 @@ from .solver import DwellSolver
 import numpy as np
 import warnings
 
+
 class StreamBuilder:
     """Builds the stream using the microscope settings.
 
@@ -114,48 +115,19 @@ class StreamBuilder:
 
     @staticmethod
     def split_dwells(dwells, max_dwt):
-        """Takes a matrix of dwells and splits them so that none of them exceeds the max dwell time. Returns a list of N_reps items which are all the split dwells.
+        """Takes a matrix of dwells and splits them so that none of them
+        exceeds the max dwell time. Returns a list of N_reps items which are
+        all the split dwells.
 
         Args:
             dwells ((n,3) array): Array of dwells
             max_dwt (float): Maximum allowed dwell time.
 
         Returns:
-            list: List of equal (n,3) arrays that when summed correspond to the dwells.
+            list: List of equal (n,3) arrays that when summed correspond to
+            the dwells.
         """
         n_splits = int(np.ceil(np.max(dwells[:, 0]) / max_dwt))
         dwells_reduced = dwells.copy()
         dwells_reduced[:, 0] = dwells_reduced[:, 0] / n_splits
         return [dwells_reduced for i in range(n_splits)]
-
-
-def stream_exp_correction_with_z(struct, settings, GR0=40e-3, doubling_length=500., sigma=4.2):
-    """ 
-    Returns stream model with exponential correction over structure height.
-    Might be useful for stl files with disconnected components, which leads to a breakdown of the DDModel.
-    
-    Takes initial growth rate/time from GR, and doubles dwell time over the length scale of doubling_length.    Doubling_length needs to be determined experimentally, e.g., from pitch of periodic structures over heights.
-    
-    Args:
-        struct: structure
-        GR: growth rate in um/s
-        doubling_length: in nm, length over which deposition time doubles
-        sigma: in nm, deposit width
-    Returns:
-        stream_builder, dwell_solver
-    """
-    
-    from .deposit_model import RRLModel
-    from . import StreamBuilder
-
-    # solve dwells for k=0 and take the data as input to create streams
-    model = RRLModel(struct, GR0, sigma)
-    stream_builder, dwell_solver = StreamBuilder.from_model(model, **settings['stream_builder'])
-    
-    # calculate times in dependence of z from dwell matrix
-    dwell_matrix = dwell_solver.get_dwells_matrix() # t, x, y, z (n, 4)
-    dwell_matrix[:,0] = np.mean( dwell_matrix[:,0] ) * np.power(2., dwell_matrix[:,3] / doubling_length)
-    # transform dwell matrix to dwell slices stacked along z, and overwrite class property
-    stream_builder.dwells_slices = np.split(dwell_matrix, np.unique(dwell_matrix[:,-1], return_index=True)[-1][1:])
-    
-    return stream_builder, dwell_solver
