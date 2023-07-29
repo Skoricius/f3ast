@@ -2,9 +2,9 @@ name: F3AST
 
 on:
   push:
-    branches: [dev]
+    branches: [master]
   pull_request:
-    branches: [dev]
+    branches: [master]
 
 jobs:
   build:
@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      
+
       # Cache the installation of Poetry itself, e.g. the next step. This prevents the workflow
       # from installing Poetry every time, which can be slow. Note the use of the Poetry version
       # number in the cache key, and the "-0" suffix: this allows you to invalidate the cache
