@@ -1,9 +1,9 @@
-from numba import njit, config, prange
-import numpy.linalg as la
 import numpy as np
+import numpy.linalg as la
+from numba import config, njit, prange
 
 # set the threading layer before any parallel target compilation
-config.THREADING_LAYER = 'threadsafe'
+config.THREADING_LAYER = "threadsafe"
 
 
 @njit(parallel=True, fastmath=True)
@@ -16,8 +16,10 @@ def _numba_eqd_pts(start_nodes, conn_vecs, n_steps):
         end_indx = end_indices[i]
         start_indx = start_indices[i]
         n = n_steps[i]
-        pts[start_indx:end_indx, :] = start_nodes[i, :].reshape(
-            1, -1) + conn_vecs[i, :].reshape(1, -1) * np.arange(n).reshape(-1, 1) / n
+        pts[start_indx:end_indx, :] = (
+            start_nodes[i, :].reshape(1, -1)
+            + conn_vecs[i, :].reshape(1, -1) * np.arange(n).reshape(-1, 1) / n
+        )
     return pts
 
 
@@ -49,14 +51,15 @@ def get_line_eqd_pts(lines, pitch):
 # def get_lines_length(lines):
 #     return np.sum(la.norm(lines[:, 1, :] - lines[:, 0, :], axis=1))
 
+
 def get_path_length(pts):
     """Gets the length of path defined by moving through the sequence of points
 
-        Args:
-            pts ((n,m) array): A sequence of n m-dimensional points
+    Args:
+        pts ((n,m) array): A sequence of n m-dimensional points
 
-        Returns:
-            (n,2) array: Distance of the path moving between the points
+    Returns:
+        (n,2) array: Distance of the path moving between the points
     """
     return np.sum(la.norm(pts[1:, :] - pts[:-1, :], axis=1))
 
@@ -76,13 +79,16 @@ def split_eqd(branch_intersections_slices, pitch):
     branches = []
     branch_lengths = []
     for branch_intersections in branch_intersections_slices:
-        branches_pts = [get_line_eqd_pts(
-            lines, pitch) for lines in branch_intersections]
+        branches_pts = [
+            get_line_eqd_pts(lines, pitch) for lines in branch_intersections
+        ]
 
         slices.append(np.vstack(branches_pts))
-        branches.append(np.concatenate(
-            [i * np.ones(brpts.shape[0]) for i, brpts in enumerate(branches_pts)]))
+        branches.append(
+            np.concatenate(
+                [i * np.ones(brpts.shape[0]) for i, brpts in enumerate(branches_pts)]
+            )
+        )
         # defining the branch length can be a bit tricky. Here I use the total distance along a path in branches_pts, but this might not be absolutely correct for all structures
-        branch_lengths.append(
-            [get_path_length(pts) for pts in branches_pts])
+        branch_lengths.append([get_path_length(pts) for pts in branches_pts])
     return slices, branches, branch_lengths

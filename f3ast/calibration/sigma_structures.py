@@ -1,13 +1,16 @@
-from f3ast.utils import load_settings
-import numpy as np
-from ..structure import Structure
-from scipy.spatial.transform import Rotation as R
-from ..stream_builder import StreamBuilder
-from ..stream import Stream
 import os
 
+import numpy as np
+from scipy.spatial.transform import Rotation as R
+
+from f3ast.utils import load_settings
+
+from ..stream import Stream
+from ..stream_builder import StreamBuilder
+from ..structure import Structure
+
 dirname = os.path.dirname(__file__)
-CUBE_PATH = os.path.join(dirname, 'cube.stl')
+CUBE_PATH = os.path.join(dirname, "cube.stl")
 
 
 def get_sigma_structures(model, sigma_list, width=75, length=800, angle=45):
@@ -31,20 +34,21 @@ def get_sigma_structures(model, sigma_list, width=75, length=800, angle=45):
     for s in sigma_list:
         model.sigma = s
         stream_builder, _ = StreamBuilder.from_model(
-            model, **settings['stream_builder'])
+            model, **settings["stream_builder"]
+        )
         sigma_strm_list.append(stream_builder.get_stream())
 
     # get the single pixel line
     struct_1px = get_straight_ramp(length, 0.1, 0.1, 45)
     model.set_structure(struct_1px)
-    stream_builder, _ = StreamBuilder.from_model(
-        model, **settings['stream_builder'])
+    stream_builder, _ = StreamBuilder.from_model(model, **settings["stream_builder"])
     strm_1px = stream_builder.get_stream()
 
     # arange on a screen
-    addressable_pixels = settings['stream_builder']['addressable_pixels']
+    addressable_pixels = settings["stream_builder"]["addressable_pixels"]
     y_positions = np.linspace(
-        0.1 * addressable_pixels[1], 0.9 * addressable_pixels[1], len(sigma_list))
+        0.1 * addressable_pixels[1], 0.9 * addressable_pixels[1], len(sigma_list)
+    )
     positions_list = [(addressable_pixels[0] / 2, y) for y in y_positions]
     for strm, pos in zip(sigma_strm_list, positions_list):
         strm.recentre(position=pos)
@@ -56,8 +60,11 @@ def get_sigma_structures(model, sigma_list, width=75, length=800, angle=45):
     all_dwells = np.vstack([strm.dwells for strm in sigma_strm_list])
     all_dwells = np.vstack((all_dwells, strm_1px.dwells))
 
-    strm_out = Stream(all_dwells, addressable_pixels=addressable_pixels,
-                      max_dwt=settings['stream_builder']['max_dwt'])
+    strm_out = Stream(
+        all_dwells,
+        addressable_pixels=addressable_pixels,
+        max_dwt=settings["stream_builder"]["max_dwt"],
+    )
     return strm_out
 
 
