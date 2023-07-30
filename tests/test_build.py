@@ -10,7 +10,7 @@ def settings():
 
 @pytest.fixture
 def structure_file():
-    return "test/simple_ramp.stl"
+    return "tests/simple_ramp.stl"
 
 
 @pytest.fixture
