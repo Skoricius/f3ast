@@ -77,3 +77,11 @@ jobs:
         with:
           options: "--check --verbose"
           src: "./f3ast tests"
+
+  isort:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: isort/isort-action@v1
+        with:
+          sort-paths: "f3ast tests"
