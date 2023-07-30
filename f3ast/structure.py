@@ -1,8 +1,6 @@
-import time
-
+import numpy as np
 import trimesh
 from mpl_toolkits import mplot3d
-import numpy as np
 from scipy.spatial.transform import Rotation
 from trimesh.intersections import mesh_multiplane
 
@@ -44,7 +42,9 @@ class Structure(trimesh.Trimesh):
         """
         msh = trimesh.load_mesh(file_path, file_type="stl")
         # create the structure and add file path
-        struct = cls(vertices=msh.vertices, faces=msh.faces, file_path=file_path, **kwargs)
+        struct = cls(
+            vertices=msh.vertices, faces=msh.faces, file_path=file_path, **kwargs
+        )
         return struct
 
     @property
