@@ -19,18 +19,17 @@ git clone git@github.com:Skoricius/f3ast.git
 pip install -e f3ast --user
 ```
 
+Note: ensure you have the most up-to-date version of `pip`.
+
+For development, it is recommended to work within `poetry` environment. For this, [install poetry](https://python-poetry.org/docs/). Run `poetry install --all-extras` to create the environment and install all packages. To activate the environment run `poetry shell`.
+
 ## Documentation
 
 See [readthedocs](https://f3ast.readthedocs.io/en/latest/) for detailed documentation and examples.
 
 ## Possible issues
 
-This library was tested with Python 3.8.5. Earlier versions of Python might not have all the libraries required to make this project work. To make sure you are using the correct version of Python without affecting your base environment, use conda environments:
-```
-conda create -n f3ast python=3.8.5
-conda activate f3ast
-```
-And then install the library in the newly created environment.
+This library was tested with Python 3.9. Earlier versions of Python might not have all the libraries required to make this project work.
 
 On MACs, there might be an issue with numba threading. It has something to do with `tbb` library. If someone finds out a fix, please let me know. 
 A simple workaround is to comment out line 9 in `slicing.py` which might make the slicing slightly slower.
@@ -82,4 +81,6 @@ For acquiring calibration parameters, see `examples/calibration.ipynb`.
 ## TO DO
 * progressive slicing
 * filling in the STL (this should only be done in get_eqd function and should be relatively straightforward)
+* add black, isort
+* add pull request actions
 * improved testing and CI
