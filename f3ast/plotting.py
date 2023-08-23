@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import numpy.linalg as la
 from mpl_toolkits import mplot3d
 
 
@@ -33,6 +32,7 @@ def points3d(verts, *args, ax=None, equal_axes=True, **kwargs):
     sc = ax.scatter(verts[:, 0], verts[:, 1], verts[:, 2], *args, **kwargs)
     if equal_axes:
         set_axes_equal(ax)
+    plt.colorbar(sc, shrink=0.8)
     return ax, sc
 
 

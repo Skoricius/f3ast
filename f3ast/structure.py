@@ -134,6 +134,23 @@ class Structure(trimesh.Trimesh):
         self.apply_transform(transf_matrix)
         self.clear_slicing()
 
+    def mirror(self, normal=(1, 0, 0)):
+        """
+        Mirrors the structure through a plane with
+        the specified normal
+
+        Args:
+            normal: Tuple[int, int, int]
+                Normal to the mirror plane.
+        """
+        # make sure normal is unit vector
+        unit_normal = np.array(normal) / np.linalg.norm(normal)
+        # create transform matrix
+        transf_matrix = np.eye(4)
+        transf_matrix[:3, :3] -= 2 * np.outer(unit_normal, unit_normal)
+        self.apply_transform(transf_matrix)
+        self.clear_slicing()
+
     def clear_slicing(self):
         """Clears the slicing of the structure."""
         self._slices = None
@@ -187,7 +204,7 @@ class Structure(trimesh.Trimesh):
             axes: Matplotlib axes.
         """
         points = self.get_sliced_points()
-        ax = points3d(points, *args, **kwargs)
+        ax, _ = points3d(points, *args, **kwargs)
         return ax
 
     def show(self):
