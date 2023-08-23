@@ -1,14 +1,15 @@
 
-from mpl_toolkits import mplot3d
+import time
+
 import numpy as np
 import trimesh
+from mpl_toolkits import mplot3d
+from scipy.spatial.transform import Rotation
+from trimesh.intersections import mesh_multiplane
+
+from .branches import get_branch_connections, split_intersection
 from .plotting import create_3d_axes, points3d, set_axes_equal
 from .slicing import split_eqd
-from .branches import split_intersection, get_branch_connections
-import numpy as np
-from trimesh.intersections import mesh_multiplane
-import time
-from scipy.spatial.transform import Rotation
 
 
 class Structure(trimesh.Trimesh):
@@ -140,6 +141,23 @@ class Structure(trimesh.Trimesh):
         transf_matrix[:3, :3] = r.as_matrix()
         self.apply_transform(transf_matrix)
         self.clear_slicing()
+        
+    def mirror(self, normal=(1, 0, 0)):
+        """
+        Mirrors the structure through a plane with
+        the specified normal
+        
+        Args:
+            normal: Tuple[int, int, int] 
+                Normal to the mirror plane.
+        """
+        # make sure normal is unit vector
+        unit_normal = np.array(normal) / np.linalg.norm(normal)
+        # create transform matrix
+        transf_matrix = np.eye(4)
+        transf_matrix[:3, :3] -= 2*np.outer(unit_normal, unit_normal)
+        self.apply_transform(transf_matrix)
+        self.clear_slicing()
 
     def clear_slicing(self):
         """Clears the slicing of the structure.
@@ -193,7 +211,7 @@ class Structure(trimesh.Trimesh):
             axes: Matplotlib axes.
         """
         points = self.get_sliced_points()
-        ax = points3d(points, *args, **kwargs)
+        ax, _ = points3d(points, *args, **kwargs)
         return ax
 
     def show(self):

@@ -81,7 +81,8 @@ class StreamBuilder:
         return stream
 
     def get_stream_dwells(self):
-        """Gets the stream dwells by splitting and ordering them appropriately. Also converts x, y in pixels and gets rid of small dwells.
+        """Gets the stream dwells by splitting and ordering them appropriately.
+        Also converts x, y in pixels and gets rid of small dwells.
 
         Returns:
             (n,3) array: Array of dwells.
@@ -115,14 +116,17 @@ class StreamBuilder:
 
     @staticmethod
     def split_dwells(dwells, max_dwt):
-        """Takes a matrix of dwells and splits them so that none of them exceeds the max dwell time. Returns a list of N_reps items which are all the split dwells.
+        """Takes a matrix of dwells and splits them so that none of them
+        exceeds the max dwell time. Returns a list of N_reps items which are
+        all the split dwells.
 
         Args:
             dwells ((n,3) array): Array of dwells
             max_dwt (float): Maximum allowed dwell time.
 
         Returns:
-            list: List of equal (n,3) arrays that when summed correspond to the dwells.
+            list: List of equal (n,3) arrays that when summed correspond to
+            the dwells.
         """
         n_splits = int(np.ceil(np.max(dwells[:, 0]) / max_dwt))
         dwells_reduced = dwells.copy()
