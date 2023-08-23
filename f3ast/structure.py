@@ -1,5 +1,3 @@
-import time
-
 import numpy as np
 import trimesh
 from mpl_toolkits import mplot3d
@@ -42,7 +40,6 @@ class Structure(trimesh.Trimesh):
         Returns:
             Structure
         """
-        file_path = file_path
         msh = trimesh.load_mesh(file_path, file_type="stl")
         # create the structure and add file path
         struct = cls(
