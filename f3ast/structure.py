@@ -142,23 +142,20 @@ class Structure(trimesh.Trimesh):
         self.apply_transform(transf_matrix)
         self.clear_slicing()
         
-    def mirror(self, mirror_plane='x'):
+    def mirror(self, normal=(1, 0, 0)):
         """
-        Mirrors the structure at plane x, y, or z.
+        Mirrors the structure through a plane with
+        the specified normal
         
         Args:
-            mirror_plane: str 
-                Specifies mirror plane as 'x', 'y' or 'z'.
+            normal: Tuple[int, int, int] 
+                Normal to the mirror plane.
         """
+        # make sure normal is unit vector
+        unit_normal = np.array(normal) / np.linalg.norm(normal)
+        # create transform matrix
         transf_matrix = np.eye(4)
-        if   mirror_plane == 'x':
-            transf_matrix[0,0] = -1
-        elif mirror_plane == 'y':
-            transf_matrix[1,1] = -1
-        elif mirror_plane == 'z':
-            transf_matrix[2,2] = -1
-        else:
-            print("Mirror plane needs to be given as x, y, or z.\n No transformation applied.")
+        transf_matrix[:3, :3] -= 2*np.outer(unit_normal, unit_normal)
         self.apply_transform(transf_matrix)
         self.clear_slicing()
 
