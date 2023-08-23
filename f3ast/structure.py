@@ -1,15 +1,15 @@
 
-from mpl_toolkits import mplot3d
+import time
+
 import numpy as np
 import trimesh
+from mpl_toolkits import mplot3d
+from scipy.spatial.transform import Rotation
+from trimesh.intersections import mesh_multiplane
+
+from .branches import get_branch_connections, split_intersection
 from .plotting import create_3d_axes, points3d, set_axes_equal
 from .slicing import split_eqd
-from .branches import split_intersection, get_branch_connections
-import numpy as np
-from trimesh.intersections import mesh_multiplane
-import time
-from scipy.spatial.transform import Rotation
-import matplotlib.pyplot as plt
 
 
 class Structure(trimesh.Trimesh):
@@ -214,8 +214,7 @@ class Structure(trimesh.Trimesh):
             axes: Matplotlib axes.
         """
         points = self.get_sliced_points()
-        ax, sc = points3d(points, *args, **kwargs)
-        plt.colorbar(sc, shrink=0.8)
+        ax, _ = points3d(points, *args, **kwargs)
         return ax
 
     def show(self):

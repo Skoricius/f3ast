@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
-from mpl_toolkits import mplot3d
 import numpy as np
+from mpl_toolkits import mplot3d
 
 
 def create_3d_axes():
@@ -32,6 +32,7 @@ def points3d(verts, *args, ax=None, equal_axes=True, **kwargs):
     sc = ax.scatter(verts[:, 0], verts[:, 1], verts[:, 2], *args, **kwargs)
     if equal_axes:
         set_axes_equal(ax)
+    plt.colorbar(sc, shrink=0.8)
     return ax, sc
 
 
@@ -44,8 +45,8 @@ def plot_dwells(dwells):
     Returns:
         tuple: axes, scatter_plot
     """
-    ax, sc = points3d(dwells[:, 1:], c=dwells[:, 0], cmap='magma')
-    plt.colorbar(sc, ax=ax, shrink=0.6, label='t [ms]')
+    ax, sc = points3d(dwells[:, 1:], c=dwells[:, 0], cmap="magma")
+    plt.colorbar(sc, ax=ax, shrink=0.6, label="t [ms]")
     set_axes_equal(ax)
     return ax, sc
 
