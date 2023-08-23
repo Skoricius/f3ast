@@ -81,7 +81,8 @@ class StreamBuilder:
         return stream
 
     def get_stream_dwells(self):
-        """Gets the stream dwells by splitting and ordering them appropriately. Also converts x, y in pixels and gets rid of small dwells.
+        """Gets the stream dwells by splitting and ordering them appropriately.
+        Also converts x, y in pixels and gets rid of small dwells.
 
         Returns:
             (n,3) array: Array of dwells.
