@@ -1,9 +1,8 @@
 import numpy as np
 from skimage import io
-from skimage.color import rgb2gray
+from skimage.color import label2rgb, rgb2gray
 from skimage.filters import gaussian, threshold_minimum
 from skimage.measure import label
-from skimage.color import label2rgb
 
 
 def read_image(file_path):
@@ -31,7 +30,7 @@ def remove_bottom_bar(img, bottom_factor=0.93):
     Returns:
         array: Cut image.
     """
-    return img[:int(bottom_factor * img.shape[0]), :]
+    return img[: int(bottom_factor * img.shape[0]), :]
 
 
 def threshold_image(img, thresh=None, sigma=2):

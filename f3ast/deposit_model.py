@@ -1,12 +1,12 @@
 import numpy as np
 from scipy.optimize import curve_fit
 from scipy.spatial import KDTree
+
 from .resistance import get_resistance
 
 
 class Model:
-    """Template class for the model classes. Defines how we model the deposit.
-    """
+    """Template class for the model classes. Defines how we model the deposit."""
 
     def __init__(self, struct, get_parameters=True):
         self._struct = struct
@@ -15,8 +15,7 @@ class Model:
 
     @property
     def struct(self):
-        """Structure to which the model applies.
-        """
+        """Structure to which the model applies."""
         return self._struct
 
     def set_structure(self, struct, update_parameters=True):
@@ -49,7 +48,7 @@ class Model:
         """
         tree = KDTree(self.struct.slices[layer])
         threshold = self.get_nb_threshold()
-        return tree.sparse_distance_matrix(tree, threshold, output_type='coo_matrix')
+        return tree.sparse_distance_matrix(tree, threshold, output_type="coo_matrix")
 
     def proximity_fun(self, distances, *args):
         """Defines the proximity function to get the proximity matrix from distances.
@@ -85,9 +84,9 @@ class Model:
 class RRLModel(Model):
     """Reaction rate limited model. Basic model only taking into account growth rate and sigma parameters.
 
-        Attributes:
-            gr (float): growth rate
-            sigma (float): deposit width
+    Attributes:
+        gr (float): growth rate
+        sigma (float): deposit width
     """
 
     def __init__(self, struct, gr, sigma, **kwargs):
@@ -100,7 +99,7 @@ class RRLModel(Model):
         return 3 * self.sigma
 
     def proximity_fun(self, distances):
-        return self.gr * np.exp(-distances**2 / (2 * self.sigma**2))
+        return self.gr * np.exp(-(distances**2) / (2 * self.sigma**2))
 
     @staticmethod
     def calibration_fit_function(t, gr):
@@ -112,19 +111,26 @@ class RRLModel(Model):
         """Fits the calibration and returns optimal parameters and the fit function."""
         fn = RRLModel.calibration_fit_function
 
-        popt, pcov = curve_fit(fn, dwell_times, lengths,
-                               p0=[gr0, ], bounds=(0, np.inf))
+        popt, pcov = curve_fit(
+            fn,
+            dwell_times,
+            lengths,
+            p0=[
+                gr0,
+            ],
+            bounds=(0, np.inf),
+        )
         return fn, popt, pcov
 
 
 class DDModel(Model):
     """Desorption-dominated model taking into account the heating via the resistance model.
 
-        Attributes:
-            struct (Structure):
-            gr (float): growth rate
-            k (float): temperature scaling parameter
-            sigma (float): deposit width
+    Attributes:
+        struct (Structure):
+        gr (float): growth rate
+        k (float): temperature scaling parameter
+        sigma (float): deposit width
     """
 
     def __init__(self, struct, gr, k, sigma, single_pixel_width=50, **kwargs):
@@ -147,10 +153,15 @@ class DDModel(Model):
     def get_layer_parameters(self):
         """Gets the resistance and stores it as an internal parameter."""
         self._resistance = get_resistance(
-            self.struct, single_pixel_width=self.single_pixel_width)
+            self.struct, single_pixel_width=self.single_pixel_width
+        )
 
     def proximity_fun(self, distances, resistance):
-        return self.gr * np.exp(-self.k * resistance) * np.exp(-distances**2 / (2 * self.sigma**2))
+        return (
+            self.gr
+            * np.exp(-self.k * resistance)
+            * np.exp(-(distances**2) / (2 * self.sigma**2))
+        )
 
     def get_proximity_matrix(self, layer):
         """Returns the proximity matrix using the distance matrix for the given layer."""
@@ -159,8 +170,7 @@ class DDModel(Model):
         res = self.resistance[layer][distance_matrix.row]
         # get the proximity matrix
         proximity_matrix = distance_matrix.copy()
-        proximity_matrix.data = self.proximity_fun(
-            distance_matrix.data, res)
+        proximity_matrix.data = self.proximity_fun(distance_matrix.data, res)
         return proximity_matrix
 
     def get_nb_threshold(self):
@@ -188,10 +198,11 @@ class DDModel(Model):
         """
         fn = DDModel.calibration_fit_function
 
-        popt, pcov = curve_fit(fn, dwell_times, lengths,
-                               p0=[gr0, k0], bounds=(0, np.inf))
-        print('GR: ', popt[0])
-        print('k: ', popt[1])
+        popt, pcov = curve_fit(
+            fn, dwell_times, lengths, p0=[gr0, k0], bounds=(0, np.inf)
+        )
+        print("GR: ", popt[0])
+        print("k: ", popt[1])
         return fn, popt, pcov
 
 
@@ -212,12 +223,12 @@ class HeightCorrectionModel(RRLModel):
         doubling_length: in nm, length over which deposition time doubles
     """
 
-    def __init__(self, struct, gr, sigma, doubling_length=500., ** kwargs):
+    def __init__(self, struct, gr, sigma, doubling_length=500.0, **kwargs):
         super().__init__(struct, gr, sigma, **kwargs)
         self.doubling_length = doubling_length
 
     def get_proximity_matrix(self, layer, *args):
         proximity_matrix = super().get_proximity_matrix(layer, *args)
         layer_height = self.struct.z_levels[layer]
-        proximity_matrix /= np.power(2., layer_height/self.doubling_length)
+        proximity_matrix /= np.power(2.0, layer_height / self.doubling_length)
         return proximity_matrix

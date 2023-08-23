@@ -1,10 +1,12 @@
-from scipy.optimize import lsq_linear
-import numpy as np
-from .plotting import plot_dwells
-from scipy.spatial import KDTree
-from datetime import timedelta
 import time
+from datetime import timedelta
+
+import numpy as np
 from joblib import Parallel, delayed
+from scipy.optimize import lsq_linear
+from scipy.spatial import KDTree
+
+from .plotting import plot_dwells
 
 
 def get_distance_matrix(sl, threshold):
@@ -18,15 +20,15 @@ def get_distance_matrix(sl, threshold):
         coo_matrix: Sparse distance matrix.
     """
     tree = KDTree(sl)
-    return tree.sparse_distance_matrix(tree, threshold, output_type='coo_matrix')
+    return tree.sparse_distance_matrix(tree, threshold, output_type="coo_matrix")
 
 
 class DwellSolver:
     """Class which solves the proximity problem for dwell times.
 
-        Attributes:
-            model (Model): Model which to solve.
-            dwell_times_slices (list of arrays): Solutionto the proximity problem.
+    Attributes:
+        model (Model): Model which to solve.
+        dwell_times_slices (list of arrays): Solutionto the proximity problem.
     """
 
     def __init__(self, model):
@@ -39,19 +41,22 @@ class DwellSolver:
         Args:
             tol (float, optional): Tolerance of the lsq_linear solver. Defaults to 1e-3.
         """
-        print('Solving for dwells...')
+        print("Solving for dwells...")
         # get the thickness of layers
         dz_slices = self.model.struct.dz_slices
         n_layers = dz_slices.size
         # get the generator for the proximity matrix
-        prox_matrix_generator = (self.model.get_proximity_matrix(lyr)
-                                 for lyr in range(n_layers))
+        prox_matrix_generator = (
+            self.model.get_proximity_matrix(lyr) for lyr in range(n_layers)
+        )
         dwell_times_slices = list()
         # solve for each layer. Do this in parallel to speed up.
-        dwell_times_slices = Parallel(n_jobs=n_jobs)(delayed(self.solve_layer)(
-            proximity_matrix, dz) for proximity_matrix, dz in zip(prox_matrix_generator, dz_slices))
+        dwell_times_slices = Parallel(n_jobs=n_jobs)(
+            delayed(self.solve_layer)(proximity_matrix, dz)
+            for proximity_matrix, dz in zip(prox_matrix_generator, dz_slices)
+        )
         self.dwell_times_slices = dwell_times_slices
-        print('Solved')
+        print("Solved")
 
     @staticmethod
     def solve_layer(proximity_matrix, dz, tol=1e-3):
@@ -69,8 +74,7 @@ class DwellSolver:
         upper_bound = dz / proximity_matrix.diagonal()
         # solve the optimization problem
         y = dz * np.ones(proximity_matrix.shape[1])
-        result = lsq_linear(proximity_matrix, y,
-                            bounds=(0, upper_bound), tol=tol)
+        result = lsq_linear(proximity_matrix, y, bounds=(0, upper_bound), tol=tol)
         return result.x
 
     def get_dwells_slices(self):
@@ -78,8 +82,10 @@ class DwellSolver:
         if self.dwell_times_slices is None:
             self.solve_dwells()
         slices3d = self.model.struct.get_3dslices()
-        return [np.hstack([dwt[:, np.newaxis], sl3d]) for dwt, sl3d in zip(
-                self.dwell_times_slices, slices3d)]
+        return [
+            np.hstack([dwt[:, np.newaxis], sl3d])
+            for dwt, sl3d in zip(self.dwell_times_slices, slices3d)
+        ]
 
     def get_dwells_matrix(self):
         """Returns the concatenated array of dwells for each point in a Nx4 array (time, x, y, z)"""
@@ -115,6 +121,6 @@ class DwellSolver:
         """Prints the total stream time"""
         t = self.get_total_time()
         if t is not None:
-            print('Total stream time: ', t)
+            print("Total stream time: ", t)
         else:
-            print('Dwell times not calculated yet!')
+            print("Dwell times not calculated yet!")

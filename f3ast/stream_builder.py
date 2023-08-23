@@ -1,29 +1,34 @@
-from numpy.core.numeric import full
-from .stream import Stream
-from .solver import DwellSolver
-import numpy as np
 import warnings
+
+import numpy as np
+from numpy.core.numeric import full
+
+from .solver import DwellSolver
+from .stream import Stream
 
 
 class StreamBuilder:
     """Builds the stream using the microscope settings.
 
 
-        Attributes:
-            dwells_slices (list of (n,3) arrays): Specifying per layer dwells (t, x, y)
-            addressable_pixels (list of two int): Microscope addressable pixels.
-            max_dwt (float): Maximum dwell time in ms.
-            cutoff_time (float): Minimum dwell time in ms. This is just for cutting of insignificant dwells to reduce file size.
-            screen_width (float): Screen width in nm.
-            scanning_order (str): Layer scanning order. Can be "serpentine" or "serial".
+    Attributes:
+        dwells_slices (list of (n,3) arrays): Specifying per layer dwells (t, x, y)
+        addressable_pixels (list of two int): Microscope addressable pixels.
+        max_dwt (float): Maximum dwell time in ms.
+        cutoff_time (float): Minimum dwell time in ms. This is just for cutting of insignificant dwells to reduce file size.
+        screen_width (float): Screen width in nm.
+        scanning_order (str): Layer scanning order. Can be "serpentine" or "serial".
     """
 
-    def __init__(self, dwells_slices,
-                 addressable_pixels=[65536, 56576],
-                 max_dwt=5,
-                 cutoff_time=0.01,
-                 screen_width=6400,
-                 scanning_order="serpentine"):
+    def __init__(
+        self,
+        dwells_slices,
+        addressable_pixels=[65536, 56576],
+        max_dwt=5,
+        cutoff_time=0.01,
+        screen_width=6400,
+        scanning_order="serpentine",
+    ):
         self.dwells_slices = dwells_slices
 
         self.addressable_pixels = addressable_pixels
@@ -31,7 +36,9 @@ class StreamBuilder:
         self.cutoff_time = cutoff_time
         self.screen_width = screen_width
         assert scanning_order in {
-            "serial", "serpentine"}, "Unrecognized scanning order!"
+            "serial",
+            "serpentine",
+        }, "Unrecognized scanning order!"
         self.scanning_order = scanning_order
 
     @classmethod
@@ -53,7 +60,7 @@ class StreamBuilder:
         stream_builder = cls(dwells_slices, **kwargs)
         return stream_builder, dwell_solver
 
-    @ property
+    @property
     def ppn(self):
         """Pixels per nanometer"""
         return self.addressable_pixels[0] / self.screen_width
@@ -72,12 +79,14 @@ class StreamBuilder:
         if dwells.shape[1] > 3:
             dwells = dwells[:, :3]
         stream = Stream(
-            dwells, addressable_pixels=self.addressable_pixels, max_dwt=self.max_dwt)
+            dwells, addressable_pixels=self.addressable_pixels, max_dwt=self.max_dwt
+        )
         if centre:
             stream.recentre()
             if not stream.is_valid():
                 warnings.warn(
-                    "Stream outside screen limits. Structure might be too large!")
+                    "Stream outside screen limits. Structure might be too large!"
+                )
         return stream
 
     def get_stream_dwells(self):
@@ -88,17 +97,16 @@ class StreamBuilder:
             (n,3) array: Array of dwells.
         """
         # remove the dwells that are below the cutoff time
-        dwells_slices = [ds[ds[:, 0] > self.cutoff_time]
-                         for ds in self.dwells_slices]
+        dwells_slices = [ds[ds[:, 0] > self.cutoff_time] for ds in self.dwells_slices]
         # split the dwells
-        split_dwells_slices = [self.split_dwells(
-            ds, self.max_dwt) for ds in dwells_slices]
+        split_dwells_slices = [
+            self.split_dwells(ds, self.max_dwt) for ds in dwells_slices
+        ]
         del dwells_slices
 
         # connect the split slices in a list, reverse the order of every other one if the serpentine order is used
         if self.scanning_order == "serial":
-            full_dwells_list = [
-                dwls for sds in split_dwells_slices for dwls in sds]
+            full_dwells_list = [dwls for sds in split_dwells_slices for dwls in sds]
         else:
             full_dwells_list = []
             i = 0

@@ -4,6 +4,7 @@
 *.csv
 docs/_static/examples/*
 docs/.deps
+docs/README.rst
 
 idea/
 .idea/

@@ -1,9 +1,9 @@
 # This is a set of functions for splitting slices into connected components and determining how these components connect with each other
-from scipy.spatial import KDTree
-from joblib.parallel import Parallel, delayed
 import numpy as np
-from trimesh.grouping import group_rows
+from joblib.parallel import Parallel, delayed
+from scipy.spatial import KDTree
 from trimesh.graph import connected_component_labels
+from trimesh.grouping import group_rows
 
 
 def split_intersection(intersection):
@@ -19,7 +19,8 @@ def split_intersection(intersection):
     grouped_rows = group_rows(intersection.reshape(-1, 2))
     # assign each point an index.
     grouped_indices = np.array(
-        [[l, i] for i, ls in enumerate(grouped_rows) for l in ls])
+        [[l, i] for i, ls in enumerate(grouped_rows) for l in ls]
+    )
     # get the indices sorted so that i-th element of node_indices corresponds to the i-th point
     try:
         arg = np.argsort(grouped_indices[:, 0])
@@ -30,8 +31,7 @@ def split_intersection(intersection):
     node_indices = grouped_indices[arg, 1]
     # label the connected components
     edges = node_indices.reshape(-1, 2)
-    conn_labels = connected_component_labels(
-        edges, node_count=len(grouped_rows))
+    conn_labels = connected_component_labels(edges, node_count=len(grouped_rows))
     # conn labels correspond to the nodes. Label each edge by one of its nodes.
     edge_labels = conn_labels[edges[:, 0]]
 
@@ -66,8 +66,7 @@ def get_branch_connections(branch_intersections_slices, connection_distance):
             tree = KDTree(br_pts.reshape(-1, 2))
             branch_min_distances = []
             for k, branch_pts_below in enumerate(separated_pts_below):
-                nb, dist = is_branch_nb(
-                    tree, branch_pts_below, connection_distance)
+                nb, dist = is_branch_nb(tree, branch_pts_below, connection_distance)
                 if nb:
                     branch_min_distances.append(dist)
                     this_branch_connections.append(k)
@@ -109,8 +108,7 @@ def is_branch_nb(tree, branch_pts, connection_distance):
         float: Minimal distance between branches. np.inf if not neighbours.
     """
     tree1 = KDTree(branch_pts.reshape(-1, 2))
-    distance_matrix = tree.sparse_distance_matrix(
-        tree1, connection_distance, p=np.inf)
+    distance_matrix = tree.sparse_distance_matrix(tree1, connection_distance, p=np.inf)
     if distance_matrix.count_nonzero() > 0:
         min_dist = np.min(list(distance_matrix.values()))
         return True, min_dist
@@ -118,15 +116,13 @@ def is_branch_nb(tree, branch_pts, connection_distance):
 
 
 def get_branch_connections_in_slice(br_pts, separated_pts_below, connection_distance):
-    """Auxiliary function to get the connections in a slice. This is for the purposes of parallelizing, but is not used atm.
-    """
+    """Auxiliary function to get the connections in a slice. This is for the purposes of parallelizing, but is not used atm."""
 
     this_branch_connections = []
     tree = KDTree(br_pts.reshape(-1, 2))
     branch_min_distances = []
     for k, branch_pts_below in enumerate(separated_pts_below):
-        nb, dist = is_branch_nb(
-            tree, branch_pts_below, connection_distance)
+        nb, dist = is_branch_nb(tree, branch_pts_below, connection_distance)
         if nb:
             branch_min_distances.append(dist)
             this_branch_connections.append(k)
