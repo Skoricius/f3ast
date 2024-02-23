@@ -1,34 +1,28 @@
-import warnings
-
-import numpy as np
 from numpy.core.numeric import full
-
-from .solver import DwellSolver
 from .stream import Stream
-
+from .solver import DwellSolver
+import numpy as np
+import warnings
 
 class StreamBuilder:
     """Builds the stream using the microscope settings.
 
 
-    Attributes:
-        dwells_slices (list of (n,3) arrays): Specifying per layer dwells (t, x, y)
-        addressable_pixels (list of two int): Microscope addressable pixels.
-        max_dwt (float): Maximum dwell time in ms.
-        cutoff_time (float): Minimum dwell time in ms. This is just for cutting of insignificant dwells to reduce file size.
-        screen_width (float): Screen width in nm.
-        scanning_order (str): Layer scanning order. Can be "serpentine" or "serial".
+        Attributes:
+            dwells_slices (list of (n,3) arrays): Specifying per layer dwells (t, x, y)
+            addressable_pixels (list of two int): Microscope addressable pixels.
+            max_dwt (float): Maximum dwell time in ms.
+            cutoff_time (float): Minimum dwell time in ms. This is just for cutting of insignificant dwells to reduce file size.
+            screen_width (float): Screen width in nm.
+            scanning_order (str): Layer scanning order. Can be "serpentine" or "serial".
     """
 
-    def __init__(
-        self,
-        dwells_slices,
-        addressable_pixels=[65536, 56576],
-        max_dwt=5,
-        cutoff_time=0.01,
-        screen_width=6400,
-        scanning_order="serpentine",
-    ):
+    def __init__(self, dwells_slices,
+                 addressable_pixels=[65536, 56576],
+                 max_dwt=5,
+                 cutoff_time=0.01,
+                 screen_width=6400,
+                 scanning_order="serpentine"):
         self.dwells_slices = dwells_slices
 
         self.addressable_pixels = addressable_pixels
@@ -36,9 +30,7 @@ class StreamBuilder:
         self.cutoff_time = cutoff_time
         self.screen_width = screen_width
         assert scanning_order in {
-            "serial",
-            "serpentine",
-        }, "Unrecognized scanning order!"
+            "serial", "serpentine"}, "Unrecognized scanning order!"
         self.scanning_order = scanning_order
 
     @classmethod
@@ -60,7 +52,7 @@ class StreamBuilder:
         stream_builder = cls(dwells_slices, **kwargs)
         return stream_builder, dwell_solver
 
-    @property
+    @ property
     def ppn(self):
         """Pixels per nanometer"""
         return self.addressable_pixels[0] / self.screen_width
@@ -79,34 +71,32 @@ class StreamBuilder:
         if dwells.shape[1] > 3:
             dwells = dwells[:, :3]
         stream = Stream(
-            dwells, addressable_pixels=self.addressable_pixels, max_dwt=self.max_dwt
-        )
+            dwells, addressable_pixels=self.addressable_pixels, max_dwt=self.max_dwt)
         if centre:
             stream.recentre()
             if not stream.is_valid():
                 warnings.warn(
-                    "Stream outside screen limits. Structure might be too large!"
-                )
+                    "Stream outside screen limits. Structure might be too large!")
         return stream
 
     def get_stream_dwells(self):
-        """Gets the stream dwells by splitting and ordering them appropriately.
-        Also converts x, y in pixels and gets rid of small dwells.
+        """Gets the stream dwells by splitting and ordering them appropriately. Also converts x, y in pixels and gets rid of small dwells.
 
         Returns:
             (n,3) array: Array of dwells.
         """
         # remove the dwells that are below the cutoff time
-        dwells_slices = [ds[ds[:, 0] > self.cutoff_time] for ds in self.dwells_slices]
+        dwells_slices = [ds[ds[:, 0] > self.cutoff_time]
+                         for ds in self.dwells_slices]
         # split the dwells
-        split_dwells_slices = [
-            self.split_dwells(ds, self.max_dwt) for ds in dwells_slices
-        ]
+        split_dwells_slices = [self.split_dwells(
+            ds, self.max_dwt) for ds in dwells_slices]
         del dwells_slices
 
         # connect the split slices in a list, reverse the order of every other one if the serpentine order is used
         if self.scanning_order == "serial":
-            full_dwells_list = [dwls for sds in split_dwells_slices for dwls in sds]
+            full_dwells_list = [
+                dwls for sds in split_dwells_slices for dwls in sds]
         else:
             full_dwells_list = []
             i = 0
@@ -124,19 +114,48 @@ class StreamBuilder:
 
     @staticmethod
     def split_dwells(dwells, max_dwt):
-        """Takes a matrix of dwells and splits them so that none of them
-        exceeds the max dwell time. Returns a list of N_reps items which are
-        all the split dwells.
+        """Takes a matrix of dwells and splits them so that none of them exceeds the max dwell time. Returns a list of N_reps items which are all the split dwells.
 
         Args:
             dwells ((n,3) array): Array of dwells
             max_dwt (float): Maximum allowed dwell time.
 
         Returns:
-            list: List of equal (n,3) arrays that when summed correspond to
-            the dwells.
+            list: List of equal (n,3) arrays that when summed correspond to the dwells.
         """
         n_splits = int(np.ceil(np.max(dwells[:, 0]) / max_dwt))
         dwells_reduced = dwells.copy()
         dwells_reduced[:, 0] = dwells_reduced[:, 0] / n_splits
         return [dwells_reduced for i in range(n_splits)]
+
+
+def stream_exp_correction_with_z(struct, settings, GR0=40e-3, doubling_length=500., sigma=4.2):
+    """ 
+    Returns stream model with exponential correction over structure height.
+    Might be useful for stl files with disconnected components, which leads to a breakdown of the DDModel.
+    
+    Takes initial growth rate/time from GR, and doubles dwell time over the length scale of doubling_length.    Doubling_length needs to be determined experimentally, e.g., from pitch of periodic structures over heights.
+    
+    Args:
+        struct: structure
+        GR: growth rate in um/s
+        doubling_length: in nm, length over which deposition time doubles
+        sigma: in nm, deposit width
+    Returns:
+        stream_builder, dwell_solver
+    """
+    
+    from .deposit_model import RRLModel
+    from . import StreamBuilder
+
+    # solve dwells for k=0 and take the data as input to create streams
+    model = RRLModel(struct, GR0, sigma)
+    stream_builder, dwell_solver = StreamBuilder.from_model(model, **settings['stream_builder'])
+    
+    # calculate times in dependence of z from dwell matrix
+    dwell_matrix = dwell_solver.get_dwells_matrix() # t, x, y, z (n, 4)
+    dwell_matrix[:,0] = np.mean( dwell_matrix[:,0] ) * np.power(2., dwell_matrix[:,3] / doubling_length)
+    # transform dwell matrix to dwell slices stacked along z, and overwrite class property
+    stream_builder.dwells_slices = np.split(dwell_matrix, np.unique(dwell_matrix[:,-1], return_index=True)[-1][1:])
+    
+    return stream_builder, dwell_solver
