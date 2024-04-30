@@ -1,7 +1,13 @@
 import os
 
+import numpy as np
+from scipy.spatial.transform import Rotation as R
 from trimesh.creation import box
 from trimesh.exchange.export import export_mesh
+
+from f3ast.stream import Stream
+from f3ast.stream_builder import StreamBuilder
+from f3ast.structure import Structure
 
 dirname = os.path.dirname(__file__)
 CUBE_PATH = os.path.join(dirname, "cube.stl")

@@ -1,7 +1,6 @@
 import warnings
 
 import numpy as np
-from numpy.core.numeric import full
 
 from .solver import DwellSolver
 from .stream import Stream
@@ -9,8 +8,6 @@ from .stream import Stream
 
 class StreamBuilder:
     """Builds the stream using the microscope settings.
-
-
     Attributes:
         dwells_slices (list of (n,3) arrays): Specifying per layer dwells (t, x, y)
         addressable_pixels (list of two int): Microscope addressable pixels.
@@ -44,10 +41,8 @@ class StreamBuilder:
     @classmethod
     def from_model(cls, model, **kwargs):
         """Creates the class from the model. Internally creates the DwellSolver and solves for dwells.
-
         Args:
             model (Model): Class defining the growth model.
-
         Returns:
             tuple:
                 stream_builder (StreamBuilder), dwell_solver (DwellSolver)
@@ -67,10 +62,8 @@ class StreamBuilder:
 
     def get_stream(self, centre=False):
         """Builds the stream object from the calculated dwells
-
         Args:
             centre (bool, optional): Wether to centre the stream on the screen. Defaults to False.
-
         Returns:
             Stream:
         """
@@ -92,7 +85,6 @@ class StreamBuilder:
     def get_stream_dwells(self):
         """Gets the stream dwells by splitting and ordering them appropriately.
         Also converts x, y in pixels and gets rid of small dwells.
-
         Returns:
             (n,3) array: Array of dwells.
         """
@@ -127,11 +119,9 @@ class StreamBuilder:
         """Takes a matrix of dwells and splits them so that none of them
         exceeds the max dwell time. Returns a list of N_reps items which are
         all the split dwells.
-
         Args:
             dwells ((n,3) array): Array of dwells
             max_dwt (float): Maximum allowed dwell time.
-
         Returns:
             list: List of equal (n,3) arrays that when summed correspond to
             the dwells.

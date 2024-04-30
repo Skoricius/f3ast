@@ -4,9 +4,7 @@ version = "1.0.2"
 description = "FEBID 3D Algorithm for Stream File Generation (F3AST)"
 authors = ["Luka Skoric <skoriclk@gmail.com>"]
 readme = "README.md"
-packages = [
-    {include = "f3ast"},
-]
+packages = [{ include = "f3ast" }]
 documentation = "https://f3ast.readthedocs.io/en/latest/"
 license = "GNU GENERAL PUBLIC LICENSE"
 
@@ -25,8 +23,8 @@ pyglet = "^2.0.9"
 ipykernel = "^6.25.0"
 jupyter = "^1.0.0"
 pytest = { version = "^6.2.5", optional = true }
-black =  { version = "^23.7.0", optional = true }
-isort =  { version = "^5.12.0", optional = true }
+black = { version = "^23.7.0", optional = true }
+isort = { version = "^5.12.0", optional = true }
 
 [tool.poetry.extras]
 test = ["pytest"]

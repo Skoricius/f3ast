@@ -6,7 +6,7 @@ from numba import config, njit, prange
 config.THREADING_LAYER = "threadsafe"
 
 
-@njit(parallel=True, fastmath=True)
+# @njit(parallel=True, fastmath=True)
 def _numba_eqd_pts(start_nodes, conn_vecs, n_steps):
     pts = np.zeros((np.sum(n_steps), 2))
     end_indices = np.cumsum(n_steps)
