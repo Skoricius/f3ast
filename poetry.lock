@@ -2264,17 +2264,6 @@ files = [
 diagrams = ["jinja2", "railroad-diagrams"]
 
 [[package]]
-name = "pyqt5-qt5"
-version = "5.15.13"
-description = "The subset of a Qt installation needed by PyQt5."
-optional = false
-python-versions = "*"
-files = [
-    {file = "PyQt5_Qt5-5.15.13-py3-none-macosx_10_13_x86_64.whl", hash = "sha256:92575a9e96a27c4ed67c56c7048ded7461a1655d5d21f0e05064664e6e9fcbdf"},
-    {file = "PyQt5_Qt5-5.15.13-py3-none-macosx_11_0_arm64.whl", hash = "sha256:141859f2ffe04cc6c5db970e2b6ad9f98897805d886a14c52614e3799daab6d6"},
-]
-
-[[package]]
 name = "pyqt6"
 version = "6.7.0"
 description = "Python bindings for the Qt cross platform application toolkit"
@@ -3258,4 +3247,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9, <3.13"
-content-hash = "5f425de62b4101a4dfdd6a31ee1532821975c2c0e67f56ccbd9ed0cdc2250b69"
+content-hash = "a6f34ef34ffb880df72d17a1ea40769ba99d86b8f8c276132dd2a4da7bbfe2dc"
