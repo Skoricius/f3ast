@@ -41,15 +41,13 @@ def get_sigma_structures(model, sigma_list, settings, width=75, length=800, angl
     # get the single pixel line
     struct_1px = get_straight_ramp(length, 0.1, 0.1, 45)
     model.set_structure(struct_1px)
-    stream_builder, _ = StreamBuilder.from_model(
-        model, **settings["stream_builder"])
+    stream_builder, _ = StreamBuilder.from_model(model, **settings["stream_builder"])
     strm_1px = stream_builder.get_stream()
 
     # arange on a screen
     addressable_pixels = settings["stream_builder"]["addressable_pixels"]
     y_positions = np.linspace(
-        0.1 * addressable_pixels[1], 0.9 *
-        addressable_pixels[1], len(sigma_list)
+        0.1 * addressable_pixels[1], 0.9 * addressable_pixels[1], len(sigma_list)
     )
     positions_list = [(addressable_pixels[0] / 2, y) for y in y_positions]
     for strm, pos in zip(sigma_strm_list, positions_list):

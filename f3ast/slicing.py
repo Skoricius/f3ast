@@ -86,8 +86,7 @@ def split_eqd(branch_intersections_slices, pitch):
         slices.append(np.vstack(branches_pts))
         branches.append(
             np.concatenate(
-                [i * np.ones(brpts.shape[0])
-                 for i, brpts in enumerate(branches_pts)]
+                [i * np.ones(brpts.shape[0]) for i, brpts in enumerate(branches_pts)]
             )
         )
         # defining the branch length can be a bit tricky. Here I use the total distance along a path in branches_pts, but this might not be absolutely correct for all structures

@@ -89,8 +89,7 @@ class StreamBuilder:
             (n,3) array: Array of dwells.
         """
         # remove the dwells that are below the cutoff time
-        dwells_slices = [ds[ds[:, 0] > self.cutoff_time]
-                         for ds in self.dwells_slices]
+        dwells_slices = [ds[ds[:, 0] > self.cutoff_time] for ds in self.dwells_slices]
         # split the dwells
         split_dwells_slices = [
             self.split_dwells(ds, self.max_dwt) for ds in dwells_slices
@@ -99,8 +98,7 @@ class StreamBuilder:
 
         # connect the split slices in a list, reverse the order of every other one if the serpentine order is used
         if self.scanning_order == "serial":
-            full_dwells_list = [
-                dwls for sds in split_dwells_slices for dwls in sds]
+            full_dwells_list = [dwls for sds in split_dwells_slices for dwls in sds]
         else:
             full_dwells_list = []
             i = 0
