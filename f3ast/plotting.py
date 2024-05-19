@@ -15,7 +15,7 @@ def create_3d_axes():
     return ax
 
 
-def points3d(verts, *args, ax=None, equal_axes=True, **kwargs):
+def points3d(verts, *args, ax=None, equal_axes=True, colorbar: bool = True, **kwargs):
     """Plots the 3D points in a 3D scatter plot.
 
     Args:
@@ -32,7 +32,8 @@ def points3d(verts, *args, ax=None, equal_axes=True, **kwargs):
     sc = ax.scatter(verts[:, 0], verts[:, 1], verts[:, 2], *args, **kwargs)
     if equal_axes:
         set_axes_equal(ax)
-    plt.colorbar(sc, shrink=0.8)
+    if colorbar:
+        plt.colorbar(sc, shrink=0.8)
     return ax, sc
 
 
@@ -45,7 +46,8 @@ def plot_dwells(dwells):
     Returns:
         tuple: axes, scatter_plot
     """
-    ax, sc = points3d(dwells[:, 1:], c=dwells[:, 0], cmap="magma")
+    ax, sc = points3d(dwells[:, 1:], c=dwells[:, 0],
+                      cmap="magma", colorbar=False)
     plt.colorbar(sc, ax=ax, shrink=0.6, label="t [ms]")
     set_axes_equal(ax)
     return ax, sc
