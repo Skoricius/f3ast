@@ -46,8 +46,7 @@ def plot_dwells(dwells):
     Returns:
         tuple: axes, scatter_plot
     """
-    ax, sc = points3d(dwells[:, 1:], c=dwells[:, 0],
-                      cmap="magma", colorbar=False)
+    ax, sc = points3d(dwells[:, 1:], c=dwells[:, 0], cmap="magma", colorbar=False)
     plt.colorbar(sc, ax=ax, shrink=0.6, label="t [ms]")
     set_axes_equal(ax)
     return ax, sc
