@@ -29,13 +29,13 @@ class Model:
         if update_parameters:
             self.get_layer_parameters()
 
-    def get_nb_threshold(self):
+    def get_nb_threshold(self) -> float:
         """Gets the threshold distance for which the points in a layer are considered neighbours.
 
         Returns:
             distance (float):
         """
-        return 0
+        return 0.0
 
     def get_distance_matrix(self, layer):
         """Gets the distance matrix for the layer given by the index.
@@ -98,7 +98,7 @@ class RRLModel(Model):
         """How far are the points considered neighbours"""
         return 3 * self.sigma
 
-    def proximity_fun(self, distances):
+    def proximity_fun(self, distances, *_args):
         return self.gr * np.exp(-(distances**2) / (2 * self.sigma**2))
 
     @staticmethod
@@ -231,4 +231,46 @@ class HeightCorrectionModel(RRLModel):
         proximity_matrix = super().get_proximity_matrix(layer, *args)
         layer_height = self.struct.z_levels[layer]
         proximity_matrix /= np.power(2.0, layer_height / self.doubling_length)
+        return proximity_matrix
+
+
+class InheritModel(Model):
+    """Abstract class that allows inheriting a model to build upon it"""
+
+    def __init__(self, base_model: Model, **kwargs):
+        super().__init__(base_model.struct, **kwargs)
+        self.base_model = base_model
+
+    def get_nb_threshold(self):
+        """How far are the points considered neighbours"""
+        return self.base_model.get_nb_threshold()
+
+    def proximity_fun(self, distances, *args):
+        return self.base_model.proximity_fun(distances, *args)
+
+
+class PhiAngleCorrectionModel(InheritModel):
+    """ """
+
+    def __init__(self, base_model: Model, phi0: float, correction_factor: float):
+        super().__init__(base_model)
+        self.layer_angles = self.get_layer_angles()
+        self.phi0 = phi0
+        self.correction_factor = correction_factor
+
+    def get_layer_angles(self) -> np.ndarray:
+        layer_centres = np.array(
+            [layer_points.mean(axis=0) for layer_points in self.struct.get_3dslices()]
+        )
+        layer_vectors = layer_centres[1:, :] - layer_centres[:-1, :]
+        angles = np.zeros(len(self.struct.z_levels), dtype=float)
+        angles[1, :] = np.arctan2(layer_vectors[1, :], layer_vectors[0, :])
+        return angles
+
+    def angle_correction_function(self, angles: np.ndarray) -> np.ndarray:
+        return 1 + self.correction_factor * np.cos(angles - self.phi0)
+
+    def get_proximity_matrix(self, layer, *args):
+        proximity_matrix = super().get_proximity_matrix(layer, *args)
+        proximity_matrix *= self.angle_correction_function(self.layer_angles)
         return proximity_matrix
