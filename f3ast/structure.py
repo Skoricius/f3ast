@@ -125,7 +125,8 @@ class Structure(trimesh.Trimesh):
             rotation_angle: float
                 Rotation angle in degrees.
         """
-        r = Rotation.from_rotvec(np.deg2rad(rotation_angle) * np.array(rotation_axis))
+        r = Rotation.from_rotvec(np.deg2rad(
+            rotation_angle) * np.array(rotation_axis))
         transf_matrix = np.eye(4)
         transf_matrix[:3, :3] = r.as_matrix()
         self.apply_transform(transf_matrix)
@@ -201,8 +202,7 @@ class Structure(trimesh.Trimesh):
             axes: Matplotlib axes.
         """
         points = self.get_sliced_points()
-        ax, _ = points3d(points, *args, **kwargs)
-        return ax
+        return points3d(points, *args, **kwargs)
 
     def show(self):
         # shows the model and adds the build plate
@@ -277,5 +277,6 @@ class Structure(trimesh.Trimesh):
             bool
         )
         z_levels = z_levels[nonempty].flatten()
-        intersection_lines = [inter for inter in intersection_lines if len(inter) != 0]
+        intersection_lines = [
+            inter for inter in intersection_lines if len(inter) != 0]
         return intersection_lines, z_levels
