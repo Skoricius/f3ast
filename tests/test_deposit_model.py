@@ -1,6 +1,7 @@
-import f3ast
 import numpy as np
 import pytest
+
+import f3ast
 
 
 @pytest.fixture
