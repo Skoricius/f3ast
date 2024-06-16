@@ -134,7 +134,15 @@ class DDModel(Model):
         sigma (float): deposit width
     """
 
-    def __init__(self, struct, gr: float, k: float, sigma: float, single_pixel_width: float = 50.0, **kwargs):
+    def __init__(
+        self,
+        struct,
+        gr: float,
+        k: float,
+        sigma: float,
+        single_pixel_width: float = 50.0,
+        **kwargs
+    ):
         self.gr = gr
         self.k = k
         self.sigma = sigma
@@ -224,7 +232,14 @@ class HeightCorrectionModel(RRLModel):
         doubling_length: in nm, length over which deposition time doubles
     """
 
-    def __init__(self, struct: Structure, gr: float, sigma: float, doubling_length: float = 500.0, **kwargs):
+    def __init__(
+        self,
+        struct: Structure,
+        gr: float,
+        sigma: float,
+        doubling_length: float = 500.0,
+        **kwargs
+    ):
         super().__init__(struct, gr, sigma, **kwargs)
         self.doubling_length = doubling_length
 
@@ -253,7 +268,13 @@ class InheritModel(Model):
 class PhiAngleCorrectionModel(InheritModel):
     """ """
 
-    def __init__(self, base_model: Model, phi0: float, correction_factor: float, num_layers_smoothing: int = 10):
+    def __init__(
+        self,
+        base_model: Model,
+        phi0: float,
+        correction_factor: float,
+        num_layers_smoothing: int = 10,
+    ):
         super().__init__(base_model)
         # for smoothing, we need to take a difference a number of layers apart
         self.num_layers_smoothing = num_layers_smoothing
@@ -263,15 +284,14 @@ class PhiAngleCorrectionModel(InheritModel):
 
     def get_layer_angles(self) -> np.ndarray:
         layer_centres = np.array(
-            [layer_points.mean(axis=0)
-             for layer_points in self.struct.get_3dslices()]
+            [layer_points.mean(axis=0) for layer_points in self.struct.get_3dslices()]
         )
         num_smoothing = self.num_layers_smoothing
-        layer_vectors = layer_centres[num_smoothing:,
-                                      :] - layer_centres[:-num_smoothing, :]
+        layer_vectors = (
+            layer_centres[num_smoothing:, :] - layer_centres[:-num_smoothing, :]
+        )
         angles = np.zeros(len(self.struct.z_levels), dtype=float)
-        angles[num_smoothing:] = np.arctan2(
-            layer_vectors[:, 1], layer_vectors[:, 0])
+        angles[num_smoothing:] = np.arctan2(layer_vectors[:, 1], layer_vectors[:, 0])
         return angles
 
     def angle_correction_function(self, angles: np.ndarray) -> np.ndarray:
@@ -279,6 +299,5 @@ class PhiAngleCorrectionModel(InheritModel):
 
     def get_proximity_matrix(self, layer: int, *args):
         proximity_matrix = super().get_proximity_matrix(layer, *args)
-        proximity_matrix *= self.angle_correction_function(
-            self.layer_angles[layer])
+        proximity_matrix *= self.angle_correction_function(self.layer_angles[layer])
         return proximity_matrix
