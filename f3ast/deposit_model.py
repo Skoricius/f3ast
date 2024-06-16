@@ -3,6 +3,7 @@ from scipy.optimize import curve_fit
 from scipy.spatial import KDTree
 
 from .resistance import get_resistance
+from .structure import Structure
 
 
 class Model:
@@ -18,7 +19,7 @@ class Model:
         """Structure to which the model applies."""
         return self._struct
 
-    def set_structure(self, struct, update_parameters=True):
+    def set_structure(self, struct: Structure, update_parameters: bool = True):
         """Sets the structure and updates any internal parameters (e.g. resistance)
 
         Args:
@@ -29,15 +30,15 @@ class Model:
         if update_parameters:
             self.get_layer_parameters()
 
-    def get_nb_threshold(self):
+    def get_nb_threshold(self) -> float:
         """Gets the threshold distance for which the points in a layer are considered neighbours.
 
         Returns:
             distance (float):
         """
-        return 0
+        return 0.0
 
-    def get_distance_matrix(self, layer):
+    def get_distance_matrix(self, layer: int):
         """Gets the distance matrix for the layer given by the index.
 
         Args:
@@ -61,7 +62,7 @@ class Model:
         """
         return distances + 1
 
-    def get_proximity_matrix(self, layer, *args):
+    def get_proximity_matrix(self, layer: int, *args):
         """Gets the proximity matrix for the layer required by the solver.
 
         Args:
@@ -89,7 +90,7 @@ class RRLModel(Model):
         sigma (float): deposit width
     """
 
-    def __init__(self, struct, gr, sigma, **kwargs):
+    def __init__(self, struct: Structure, gr: float, sigma: float, **kwargs):
         super().__init__(struct, **kwargs)
         self.gr = gr
         self.sigma = sigma
@@ -98,11 +99,11 @@ class RRLModel(Model):
         """How far are the points considered neighbours"""
         return 3 * self.sigma
 
-    def proximity_fun(self, distances):
+    def proximity_fun(self, distances, *_args):
         return self.gr * np.exp(-(distances**2) / (2 * self.sigma**2))
 
     @staticmethod
-    def calibration_fit_function(t, gr):
+    def calibration_fit_function(t, gr: float):
         """Function for fitting the calibration"""
         return t * gr
 
@@ -133,7 +134,15 @@ class DDModel(Model):
         sigma (float): deposit width
     """
 
-    def __init__(self, struct, gr, k, sigma, single_pixel_width=50, **kwargs):
+    def __init__(
+        self,
+        struct,
+        gr: float,
+        k: float,
+        sigma: float,
+        single_pixel_width: float = 50.0,
+        **kwargs
+    ):
         self.gr = gr
         self.k = k
         self.sigma = sigma
@@ -163,7 +172,7 @@ class DDModel(Model):
             * np.exp(-(distances**2) / (2 * self.sigma**2))
         )
 
-    def get_proximity_matrix(self, layer):
+    def get_proximity_matrix(self, layer: int):
         """Returns the proximity matrix using the distance matrix for the given layer."""
         distance_matrix = self.get_distance_matrix(layer)
         # each row of distance matrix has the resistance of the corresponding point
@@ -223,7 +232,14 @@ class HeightCorrectionModel(RRLModel):
         doubling_length: in nm, length over which deposition time doubles
     """
 
-    def __init__(self, struct, gr, sigma, doubling_length=500.0, **kwargs):
+    def __init__(
+        self,
+        struct: Structure,
+        gr: float,
+        sigma: float,
+        doubling_length: float = 500.0,
+        **kwargs
+    ):
         super().__init__(struct, gr, sigma, **kwargs)
         self.doubling_length = doubling_length
 
@@ -231,4 +247,57 @@ class HeightCorrectionModel(RRLModel):
         proximity_matrix = super().get_proximity_matrix(layer, *args)
         layer_height = self.struct.z_levels[layer]
         proximity_matrix /= np.power(2.0, layer_height / self.doubling_length)
+        return proximity_matrix
+
+
+class InheritModel(Model):
+    """Abstract class that allows inheriting a model to build upon it"""
+
+    def __init__(self, base_model: Model, **kwargs):
+        super().__init__(base_model.struct, **kwargs)
+        self.base_model = base_model
+
+    def get_nb_threshold(self):
+        """How far are the points considered neighbours"""
+        return self.base_model.get_nb_threshold()
+
+    def proximity_fun(self, distances, *args):
+        return self.base_model.proximity_fun(distances, *args)
+
+
+class PhiAngleCorrectionModel(InheritModel):
+    """ """
+
+    def __init__(
+        self,
+        base_model: Model,
+        phi0: float,
+        correction_factor: float,
+        num_layers_smoothing: int = 10,
+    ):
+        super().__init__(base_model)
+        # for smoothing, we need to take a difference a number of layers apart
+        self.num_layers_smoothing = num_layers_smoothing
+        self.phi0 = phi0
+        self.correction_factor = correction_factor
+        self.layer_angles = self.get_layer_angles()
+
+    def get_layer_angles(self) -> np.ndarray:
+        layer_centres = np.array(
+            [layer_points.mean(axis=0) for layer_points in self.struct.get_3dslices()]
+        )
+        num_smoothing = self.num_layers_smoothing
+        layer_vectors = (
+            layer_centres[num_smoothing:, :] - layer_centres[:-num_smoothing, :]
+        )
+        angles = np.zeros(len(self.struct.z_levels), dtype=float)
+        angles[num_smoothing:] = np.arctan2(layer_vectors[:, 1], layer_vectors[:, 0])
+        return angles
+
+    def angle_correction_function(self, angles: np.ndarray) -> np.ndarray:
+        return 1 + self.correction_factor * np.cos(angles - self.phi0)
+
+    def get_proximity_matrix(self, layer: int, *args):
+        proximity_matrix = super().get_proximity_matrix(layer, *args)
+        proximity_matrix *= self.angle_correction_function(self.layer_angles[layer])
         return proximity_matrix
