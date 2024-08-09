@@ -201,8 +201,7 @@ class Structure(trimesh.Trimesh):
             axes: Matplotlib axes.
         """
         points = self.get_sliced_points()
-        ax, _ = points3d(points, *args, **kwargs)
-        return ax
+        return points3d(points, *args, **kwargs)
 
     def show(self):
         # shows the model and adds the build plate
